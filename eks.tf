@@ -30,9 +30,8 @@ module "eks" {
       before_compute = true
       configuration_values = jsonencode({
         env = {
-          ENABLE_PREFIX_DELEGATION     = "true"
-          WARM_PREFIX_TARGET           = "1"
-          AWS_VPC_K8S_CNI_EXTERNALSNAT = "true" # Add this
+          ENABLE_PREFIX_DELEGATION = "true"
+          WARM_PREFIX_TARGET       = "1"
         }
       })
     }
@@ -75,6 +74,7 @@ module "eks" {
       instance_types = ["m5.large"]
       ami_type       = "AL2023_x86_64_STANDARD"
       key_name       = aws_key_pair.eks.key_name
+      labels         = {}
     }
     gpu = {
       min_size       = 1
@@ -83,32 +83,8 @@ module "eks" {
       instance_types = ["g4dn.xlarge"]
       ami_type       = "AL2023_x86_64_NVIDIA"
       key_name       = aws_key_pair.eks.key_name
+      labels         = {}
     }
   }
 }
 
-resource "helm_release" "gpu_operator" {
-  name             = "gpu-operator"
-  repository       = "https://helm.ngc.nvidia.com/nvidia"
-  chart            = "gpu-operator"
-  version          = "v25.3.2" # Use the latest supported version; check NVIDIA docs for updates
-  namespace        = "gpu-operator"
-  create_namespace = true
-
-  # Disable toolkit as per your steps
-  set {
-    name  = "toolkit.enabled"
-    value = "false"
-  }
-  set {
-    name  = "driver.version"
-    value = "570.172.08" # Use the latest stable version; check NVIDIA
-  }
-
-  # Optional: Add wait and timeout for stability
-  wait    = true
-  timeout = 600 # 10 minutes
-
-  # Dependency: Ensure this runs after EKS cluster creation
-  depends_on = [module.eks]
-}

@@ -1,9 +1,10 @@
-# resource "random_password" "rds_password" {
-#   length  = 20
-#   special = true
-# }
+resource "random_password" "rds_password" {
+  length           = 20
+  special          = true
+  override_special = "!#$%&()*+,-.:;<=>?[]^_{|}~"
+}
 
-# # RDS PostgreSQL Instance: For pgvector-enabled vector storage
+# RDS PostgreSQL Instance: For pgvector-enabled vector storage
 # resource "aws_db_instance" "pgvector_rds" {
 #   identifier              = replace("${var.project_name}-db", "-", "")
 #   engine                  = "postgres"

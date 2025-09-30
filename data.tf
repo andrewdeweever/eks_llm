@@ -17,3 +17,14 @@ data "aws_ami" "ubuntu_latest" {
   }
 
 }
+
+data "aws_route53_zone" "zone" {
+  name         = "bsisandbox.com"
+  private_zone = false
+}
+
+data "aws_lb" "argocd" {
+  name = var.argocd_lb_name
+
+  depends_on = [helm_release.argocd]
+}
