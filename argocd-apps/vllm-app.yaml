@@ -13,7 +13,7 @@ spec:
     helm:
       releaseName: vllm  # Helm release name
       valueFiles:
-        - https://raw.githubusercontent.com/your-org/your-repo/main/argocd-apps/vllm-values.yaml  # Replace with your Git repo URL and branch; this pulls the values file remotely
+        - ./vllm-values.yaml  # Replace with your Git repo URL and branch; this pulls the values file remotely
       # If sensitive values, use helm.parameters or secrets; avoid inline for security
       # For health checks, rely on ArgoCD's built-in health assessment for Deployments/Services
   destination:
