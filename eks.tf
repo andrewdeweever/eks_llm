@@ -70,11 +70,11 @@ module "eks" {
     cpu = {
       min_size       = 1
       max_size       = 3
-      desired_size   = 2
+      desired_size   = 1
       instance_types = ["m5.large"]
       ami_type       = "AL2023_x86_64_STANDARD"
       key_name       = aws_key_pair.eks.key_name
-      labels         = {}
+      labels         = { "type" : "cpu" }
     }
     gpu = {
       min_size       = 1
@@ -83,7 +83,7 @@ module "eks" {
       instance_types = ["g4dn.xlarge"]
       ami_type       = "AL2023_x86_64_NVIDIA"
       key_name       = aws_key_pair.eks.key_name
-      labels         = {}
+      labels         = { "type" : "gpu" }
     }
   }
 }

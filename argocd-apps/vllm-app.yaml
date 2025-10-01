@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vllm
+  namespace: argocd  # Assumes ArgoCD is installed in 'argocd' namespace; adjust if different
+  # Add labels or annotations if needed, e.g., finalizers: [resources-finalizer.argocd.argoproj.io]
+spec:
+  project: default  # Assumes default ArgoCD project; create a dedicated project for better isolation
+  source:
+    repoURL: https://github.com/vllm-project/vllm.git  # Official vLLM Git repo
+    targetRevision: main  # Use a specific tag/release for production, e.g., v0.5.1
+    path: charts/vllm  # Path to the Helm chart in the repo; ArgoCD will detect and use it as Helm source
+    helm:
+      releaseName: vllm  # Helm release name
+      valueFiles:
+        - https://raw.githubusercontent.com/your-org/your-repo/main/argocd-apps/vllm-values.yaml  # Replace with your Git repo URL and branch; this pulls the values file remotely
+      # If sensitive values, use helm.parameters or secrets; avoid inline for security
+      # For health checks, rely on ArgoCD's built-in health assessment for Deployments/Services
+  destination:
+    server: https://kubernetes.default.svc  # In-cluster Kubernetes API
+    namespace: vllm  # Target namespace for deployment
+  syncPolicy:
+    automated:
+      prune: true  # Automatically delete resources not in Git
+      selfHeal: true  # Automatically sync if out of sync
+    syncOptions:
+      - CreateNamespace=true  # Create the 'vllm' namespace if it doesn't exist
+      - ApplyOutOfSyncOnly=true  # Optional: Only apply changes if out of sync
+    # Sync waves can be defined in the Helm chart hooks if needed; not specified here
+  # IgnoreDifferences can be added for resources that change externally, e.g., for GPU resources
+  # info: {}  # Optional: Add application info like URL after sync

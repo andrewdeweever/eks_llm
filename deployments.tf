@@ -178,4 +178,3 @@ resource "helm_release" "argocd" {
 
   depends_on = [module.eks, aws_acm_certificate_validation.argocd, helm_release.alb_controller]
 }
-
