@@ -9,7 +9,7 @@ spec:
   source:
     repoURL: https://github.com/vllm-project/vllm.git  # Official vLLM Git repo
     targetRevision: main  # Use a specific tag/release for production, e.g., v0.5.1
-    path: charts/vllm  # Path to the Helm chart in the repo; ArgoCD will detect and use it as Helm source
+    path: examples/online_serving/chart-helm  # Path to the Helm chart in the repo; ArgoCD will detect and use it as Helm source
     helm:
       releaseName: vllm  # Helm release name
       valueFiles:
