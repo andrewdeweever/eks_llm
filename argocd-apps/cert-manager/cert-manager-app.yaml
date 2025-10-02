@@ -49,7 +49,9 @@ spec:
           create: true
         serviceAccount:
           create: true
-          annotations: {}
+          name: cert-manager
+          annotations:
+            eks.amazonaws.com/role-arn: ""
   destination:
     server: https://kubernetes.default.svc
     namespace: cert-manager  # Dedicated namespace
