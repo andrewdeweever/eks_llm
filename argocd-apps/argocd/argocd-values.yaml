@@ -69,6 +69,9 @@ repoServer:
 # Install CRDs first
 installCRDs: true
 
+sources:
+  - ingress
+
 # RBAC: Enabled by default, but ensure for prod
 rbac:
   create: true

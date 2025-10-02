@@ -11,7 +11,7 @@ aws:
   # For secrets: create Secret 'external-dns-aws' with keys 'access-key-id', 'secret-access-key'
 
 domainFilters:
-  - deweever.bsisandbox.com  # Placeholder; add your hosted zones
+  - bsisandbox.com  # Placeholder; add your hosted zones
 
 policy: sync  # Sync policy: upsert and delete
 
@@ -50,11 +50,6 @@ serviceAccount:
   }
   # Example for IAM: annotations: { eks\\.amazonaws\\.com/role-arn: "arn:aws:iam::123456789012:role/external-dns" }
 
-# Metrics
-metrics:
-  enabled: true
-  serviceMonitor:
-    enabled: true  # For Prometheus
 
 # Log level
 logLevel: info
