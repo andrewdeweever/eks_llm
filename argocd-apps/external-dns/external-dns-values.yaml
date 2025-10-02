@@ -45,7 +45,9 @@ rbac:
 # Service account
 serviceAccount:
   create: true
-  annotations: {}
+  annotations: {
+    eks.amazonaws.com/role-arn: arn:aws:iam::704855531002:role/eks-llm-external-dns
+  }
   # Example for IAM: annotations: { eks\\.amazonaws\\.com/role-arn: "arn:aws:iam::123456789012:role/external-dns" }
 
 # Metrics
