@@ -3,12 +3,12 @@
 # Official chart: https://kubernetes-sigs.github.io/external-dns, version 1.15.3
 # Alternatives: Bitnami/external-dns (similar, but SIGs is official Kubernetes project).
 
-provider: aws  # Route53 provider
+provider: 
+  name: aws  # Route53 provider
 
-aws:
-  region: us-west-2  # Change to your region
-  # For IAM roles: use serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn=arn:aws:iam::ACCOUNT:role/external-dns
-  # For secrets: create Secret 'external-dns-aws' with keys 'access-key-id', 'secret-access-key'
+env:
+  - name: AWS_DEFAULT_REGION
+    value: us-west-2
 
 domainFilters:
   - bsisandbox.com  # Placeholder; add your hosted zones
