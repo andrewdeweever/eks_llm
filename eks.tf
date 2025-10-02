@@ -74,6 +74,7 @@ module "eks" {
       min_size       = 1
       max_size       = 3
       desired_size   = 1
+      disk_size      = 100
       instance_types = ["m5.large"]
       ami_type       = "AL2023_x86_64_STANDARD"
       key_name       = aws_key_pair.eks.key_name
@@ -83,6 +84,7 @@ module "eks" {
       min_size       = 1
       max_size       = 3
       desired_size   = 1
+      disk_size      = 100
       instance_types = ["g4dn.xlarge"]
       ami_type       = "AL2023_x86_64_NVIDIA"
       key_name       = aws_key_pair.eks.key_name

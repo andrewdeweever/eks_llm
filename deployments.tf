@@ -1,8 +1,8 @@
-resource "kubernetes_namespace" "argocd" {
-  metadata {
-    name = "argocd"
-  }
-}
+# resource "kubernetes_namespace" "argocd" {
+#   metadata {
+#     name = "argocd"
+#   }
+# }
 
 resource "kubernetes_secret" "git-repo" {
   metadata {
@@ -172,7 +172,7 @@ resource "helm_release" "argocd" {
   chart            = "argo-cd"
   version          = "8.5.8"
   namespace        = "argocd"
-  create_namespace = false
+  create_namespace = true
 
   #values = [templatefile("argocd-values.yaml", { cert_arn = aws_acm_certificate.argocd.arn })]
   # values = [
