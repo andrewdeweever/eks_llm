@@ -219,6 +219,7 @@ resource "kubectl_manifest" "argocd_root_app" {
         path           = "argocd-apps/"
         directory = {
           recurse = true
+          exclude = "**/*-values.yaml"
         }
       }
       destination = {
