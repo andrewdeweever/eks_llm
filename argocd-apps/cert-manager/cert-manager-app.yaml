@@ -4,7 +4,7 @@ metadata:
   name: cert-manager
   namespace: argocd  # Assumes ArgoCD in 'argocd' namespace
   annotations:
-    argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/sync-wave: "-1"
   # Labels: e.g., app.kubernetes.io/name: cert-manager
 spec:
   project: default  # Dedicated project recommended
