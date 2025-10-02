@@ -16,7 +16,7 @@ spec:
       releaseName: argocd
       values: |
         global:
-          domain: deweever.bsisandbox.com
+          domain: argocd.deweever.bsisandbox.com
         configs:
           params:
             server.insecure: true
@@ -34,12 +34,12 @@ spec:
             annotations:
               cert-manager.io/cluster-issuer: letsencrypt-prod
               nginx.ingress.kubernetes.io/ssl-redirect: "true"
-            hostname: deweever.bsisandbox.com  # Replace with actual
+            hostname: argocd.deweever.bsisandbox.com  # Replace with actual
             path: /
             tls:
               - secretName: argocd-tls  # Secret created by cert-manager
                 hosts:
-                  - deweever.bsisandbox.com
+                  - argocd.deweever.bsisandbox.com
           securityContext:
             runAsNonRoot: true
             runAsUser: 1000
