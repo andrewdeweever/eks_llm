@@ -13,10 +13,7 @@ spec:
     helm:
       releaseName: nginx-ingress-controller
       valueFiles:
-        - nginx-ingress-controller-values.yaml
-      parameters:
-        - name: controller.metrics.serviceMonitor.enabled
-          value: "false"
+        - https://raw.githubusercontent.com/andrewdeweever/eks_llm/main/argocd-apps/nginx-ingress-controller/nginx-ingress-controller-values.yaml  # Replace with your Git repo URL and branch; supports private repos with ArgoCD credentials
       # For secrets, use helm.parameters: e.g., --set controller.service.annotations.service\.beta\.kubernetes\.io/aws-load-balancer-ssl-cert=arn:aws:acm:...
   destination:
     server: https://kubernetes.default.svc  # In-cluster
