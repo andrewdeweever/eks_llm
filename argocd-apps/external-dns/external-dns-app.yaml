@@ -27,9 +27,7 @@ spec:
         
         domainFilters:
           - bsisandbox.com  # Placeholder; add your hosted zones
-        
-        filterIncludeDomains:
-          - deweever.bsisandbox.com
+      
         
         policy: sync  # Sync policy: upsert and delete
         
