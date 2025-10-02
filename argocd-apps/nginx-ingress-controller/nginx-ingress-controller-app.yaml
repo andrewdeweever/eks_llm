@@ -44,7 +44,7 @@ spec:
             serviceMonitor:
               enabled: false
           admissionWebhooks:
-            enabled: true
+            enabled: false
           podSecurityContext:
             runAsUser: 101
             fsGroup: 101
