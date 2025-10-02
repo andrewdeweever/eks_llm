@@ -41,6 +41,9 @@ module "eks" {
     kube-proxy = {
       most_recent = true
     }
+    aws-ebs-csi-driver = {
+      most_recent = true
+    }
   }
 
   endpoint_private_access = true
