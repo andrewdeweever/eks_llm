@@ -19,3 +19,7 @@ output "eks_cluster_name" {
   value       = module.eks.cluster_name
 }
 
+output "external_dns_role_arn" {
+  value = aws_iam_role.external_dns.arn
+  description = "ARN of the IAM role for external-dns"
+}

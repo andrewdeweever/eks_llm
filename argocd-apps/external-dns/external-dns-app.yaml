@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: external-dns
+  namespace: argocd  # Assumes ArgoCD in 'argocd' namespace
+  # Labels: e.g., app.kubernetes.io/name: external-dns
+spec:
+  project: default  # Dedicated project recommended
+  source:
+    repoURL: https://kubernetes-sigs.github.io/external-dns  # Official Helm repo
+    chart: external-dns
+    targetRevision: 1.15.3  # Latest stable; pin for production
+    helm:
+      releaseName: external-dns
+      valueFiles:
+        - https://raw.githubusercontent.com/andrewdeweever/eks_llm/main/argocd-apps/external-dns/external-dns-values.yaml  # Replace with your Git repo URL/branch; ArgoCD handles private repo auth
+      # For secrets, pre-create Secret in namespace or use helm.parameters, e.g., --set aws.credentials.accessKeyId=...
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: external-dns  # Dedicated namespace
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+    # IgnoreDifferences for dynamic resources if needed
+  # info: {}  # Optional
+  # Assumptions: AWS EKS with Route53; post-install: Create AWS Secret or IAM role as noted in values.yaml
+  # Alternatives: Bitnami chart at https://charts.bitnami.com/bitnami, but official SIGs preferred for Kubernetes integration

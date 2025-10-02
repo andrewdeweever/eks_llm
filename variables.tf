@@ -21,3 +21,20 @@ variable "argocd_lb_name" {
   type        = string
   default     = "argocd-alb"
 }
+variable "environment" {
+  description = "Environment (e.g., dev, prod)"
+  type        = string
+  default     = "dev"
+}
+
+variable "git_username" {
+  description = "Git repository username for ArgoCD access"
+  type        = string
+  default     = "andrewdeweever" # Replace with your Git username
+}
+
+variable "git_password" {
+  description = "Git repository password or token for ArgoCD access"
+  type        = string
+  sensitive   = true
+}

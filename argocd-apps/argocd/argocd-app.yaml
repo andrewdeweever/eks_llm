@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd
+  namespace: argocd  # Assumes ArgoCD is managing itself; initial bootstrap may require manual install or separate mechanism
+  # Labels: e.g., app.kubernetes.io/name: argocd
+spec:
+  project: default  # Dedicated project recommended for production
+  source:
+    repoURL: https://argoproj.github.io/argo-helm  # Official Argo Helm repo
+    chart: argo-cd
+    targetRevision: 8.5.8  # Latest stable version as of 2025-10-01; pin and update semantically for production
+    helm:
+      releaseName: argocd
+      valueFiles:
+        - https://raw.githubusercontent.com/andrewdeweever/eks_llm/main/argocd-apps/argocd/argocd-values.yaml  # Replace with your Git repo URL/branch; ArgoCD handles private repo auth via repo credentials
+      # For secrets (e.g., admin password), use helm.parameters, e.g., --set server.extraArgs[0]=--admin.insecure
+      # Or reference a secret in values.yaml
+  destination:
+    server: https://kubernetes.default.svc  # In-cluster Kubernetes API
+    namespace: argocd  # Dedicated namespace for ArgoCD
+  syncPolicy:
+    automated:
+      prune: true  # Automatically delete resources not in Git
+      selfHeal: true  # Automatically sync if out of sync
+    syncOptions:
+      - CreateNamespace=true  # Create the 'argocd' namespace if it doesn't exist
+      - ApplyOutOfSyncOnly=true  # Only apply changes if out of sync for efficiency
+    # Sync waves: ArgoCD chart handles CRDs first via installCRDs=true in values.yaml
+  # IgnoreDifferences: Add if needed for resources that change externally, e.g., for EKS managed fields
+  # info: {}  # Optional: Add post-sync hooks or application info like external URL
+# Assumptions: AWS EKS cluster; prerequisites: EKS cluster running, IAM roles for ArgoCD if using external secrets/external repos.
+# Best practices: Enable RBAC in values.yaml, set resource limits, use secure server config.
+# For private Git repo: Configure ArgoCD repo credentials separately.
+# Alternatives: If preferring Git-based chart, use repoURL: https://github.com/argoproj/argo-helm.git, path: charts/argo-cd

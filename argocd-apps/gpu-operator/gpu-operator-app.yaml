@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gpu-operator
+  namespace: argocd  # Assumes ArgoCD in 'argocd' namespace
+  # Labels: e.g., app.kubernetes.io/name: gpu-operator
+spec:
+  project: default  # Dedicated project recommended for GPU workloads
+  source:
+    repoURL: https://helm.ngc.nvidia.com/nvidia  # Official NVIDIA Helm repo
+    chart: gpu-operator
+    targetRevision: v25.3.4  # Latest stable version as of 2025-10-01; pin for production, check NVIDIA docs for updates
+    helm:
+      releaseName: gpu-operator
+      valueFiles:
+        - https://raw.githubusercontent.com/andrewdeweever/eks_llm/main/argocd-apps/gpu-operator/gpu-operator-values.yaml  # Replace with your Git repo URL/branch; ArgoCD handles private repo auth
+      # For NGC auth if required: Use helm.parameters with --set global.imagePullSecrets
+  destination:
+    server: https://kubernetes.default.svc  # In-cluster Kubernetes API
+    namespace: gpu-operator  # Dedicated namespace
+  syncPolicy:
+    automated:
+      prune: true  # Automatically delete resources not in Git
+      selfHeal: true  # Automatically sync if out of sync
+    syncOptions:
+      - CreateNamespace=true  # Create the 'gpu-operator' namespace if it doesn't exist
+      - ApplyOutOfSyncOnly=true  # Only apply changes if out of sync
+    # Sync waves: Chart handles CRDs and dependencies (driver first)
+  # IgnoreDifferences: Add for dynamic GPU resources if needed
+  # info: {}  # Optional: Add post-sync hooks for validation
+# Assumptions: AWS EKS with GPU node group (e.g., g4dn.xlarge, labeled "type": gpu); OIDC enabled for IRSA if using NGC private images.
+# Prerequisites: EKS cluster running; no pre-installed NVIDIA drivers to avoid conflicts.
+# Best practices: Disable toolkit if not needed, pin driver version, use nodeSelector for GPU nodes in values.yaml.
+# For private Git repo: Configure ArgoCD repo credentials.
+# Alternatives: Git-based from https://github.com/NVIDIA/gpu-operator.git, path: charts/gpu-operator

@@ -1,0 +1,61 @@
+# Custom values for external-dns Helm chart.
+# Assumptions: AWS EKS with Route53; prerequisites: IAM role for external-dns or Secret with AWS credentials (access-key-id, secret-access-key).
+# Official chart: https://kubernetes-sigs.github.io/external-dns, version 1.15.3
+# Alternatives: Bitnami/external-dns (similar, but SIGs is official Kubernetes project).
+
+provider: aws  # Route53 provider
+
+aws:
+  region: us-east-1  # Change to your region
+  # For IAM roles: use serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn=arn:aws:iam::ACCOUNT:role/external-dns
+  # For secrets: create Secret 'external-dns-aws' with keys 'access-key-id', 'secret-access-key'
+
+domainFilters:
+  - deweever.bsisandbox.com  # Placeholder; add your hosted zones
+
+policy: sync  # Sync policy: upsert and delete
+
+replicaCount: 2
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 100Mi
+  limits:
+    cpu: 200m
+    memory: 200Mi
+
+# TXT owner ID for Route53
+txtOwnerId: external-dns
+
+# Security
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65534  # nobody
+  fsGroup: 65534
+
+securityContext:
+  allowPrivilegeEscalation: false
+
+# RBAC
+rbac:
+  create: true
+  pspEnabled: false  # If using PodSecurityPolicies
+
+# Service account
+serviceAccount:
+  create: true
+  annotations: {}
+  # Example for IAM: annotations: { eks\\.amazonaws\\.com/role-arn: "arn:aws:iam::123456789012:role/external-dns" }
+
+# Metrics
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true  # For Prometheus
+
+# Log level
+logLevel: info
+
+# For secrets management: Create Secret external-dns-aws in namespace external-dns
+# kubectl create secret generic external-dns-aws --from-literal=access-key-id=... --from-literal=secret-access-key=... -n external-dns

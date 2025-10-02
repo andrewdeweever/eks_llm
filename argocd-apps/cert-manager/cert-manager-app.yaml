@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager
+  namespace: argocd  # Assumes ArgoCD in 'argocd' namespace
+  # Labels: e.g., app.kubernetes.io/name: cert-manager
+spec:
+  project: default  # Dedicated project recommended
+  source:
+    repoURL: https://charts.jetstack.io  # Official Helm repo
+    chart: cert-manager
+    targetRevision: 1.15.3  # Latest stable; pin for production
+    helm:
+      releaseName: cert-manager
+      valueFiles:
+        - https://raw.githubusercontent.com/andrewdeweever/eks_llm/main/argocd-apps/cert-manager/cert-manager-values.yaml  # Replace with your Git repo URL/branch; ArgoCD handles private repo auth
+      # For secrets, use helm.parameters, e.g., --set global.leaderElection.namespace=cert-manager
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cert-manager  # Dedicated namespace
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+    # Sync waves: CRDs first if needed, but installCRDs=true handles
+  # info: {}  # Optional: Add post-sync hooks for ClusterIssuer
+  # Assumptions: AWS EKS; post-install: Create ClusterIssuer for Let's Encrypt as noted in values.yaml

@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nginx-ingress-controller
+  namespace: argocd  # Assumes ArgoCD installed in 'argocd' namespace
+  # Labels: e.g., app.kubernetes.io/part-of: ingress
+spec:
+  project: default  # Use dedicated project for isolation in production
+  source:
+    repoURL: https://kubernetes.github.io/ingress-nginx  # Official Helm repo
+    chart: ingress-nginx
+    targetRevision: 4.11.3  # Latest stable version; pin for production
+    helm:
+      releaseName: nginx-ingress-controller
+      valueFiles:
+        - https://raw.githubusercontent.com/andrewdeweever/eks_llm/main/argocd-apps/nginx-ingress-controller/nginx-ingress-controller-values.yaml  # Replace with your Git repo URL and branch; supports private repos with ArgoCD credentials
+      # For secrets, use helm.parameters: e.g., --set controller.service.annotations.service\.beta\.kubernetes\.io/aws-load-balancer-ssl-cert=arn:aws:acm:...
+  destination:
+    server: https://kubernetes.default.svc  # In-cluster
+    namespace: nginx-ingress  # Dedicated namespace
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+    # IgnoreDifferences for resources like LoadBalancer IP if dynamic
+  # info: { url: http://nginx-ingress-controller-nginx-ingress-controller.nginx-ingress.svc.cluster.local }  # Optional
+  # Assumptions: AWS EKS; prerequisites: ClusterRoleBindings for webhook if enabled

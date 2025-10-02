@@ -23,8 +23,8 @@ data "aws_route53_zone" "zone" {
   private_zone = false
 }
 
-data "aws_lb" "argocd" {
-  name = var.argocd_lb_name
+# data "aws_lb" "argocd" {
+#   name = var.argocd_lb_name
 
-  depends_on = [helm_release.argocd]
-}
+#   depends_on = [helm_release.argocd]
+# }
