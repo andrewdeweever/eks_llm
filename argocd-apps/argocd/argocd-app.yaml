@@ -12,10 +12,76 @@ spec:
     targetRevision: 8.5.8  # Latest stable version as of 2025-10-01; pin and update semantically for production
     helm:
       releaseName: argocd
-      valueFiles:
-        - https://raw.githubusercontent.com/andrewdeweever/eks_llm/main/argocd-apps/argocd/argocd-values.yaml  # Replace with your Git repo URL/branch; ArgoCD handles private repo auth via repo credentials
-      # For secrets (e.g., admin password), use helm.parameters, e.g., --set server.extraArgs[0]=--admin.insecure
-      # Or reference a secret in values.yaml
+      values: |
+        global:
+          domain: argo.deweever.bsisandbox.com 
+        server:
+          configs:
+            params:
+              server.insecure: true
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          ingress:
+            enabled: true
+            ingressClassName: nginx  
+            annotations:
+              cert-manager.io/cluster-issuer: letsencrypt-prod  
+              nginx.ingress.kubernetes.io/ssl-redirect: "true"  
+            hostname: argo.deweever.bsisandbox.com  # Replace with actual
+            path: /
+            tls: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            fsGroup: 2000
+        controller:
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          replicaCount: 1
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            fsGroup: 2000
+        repoServer:
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+            limits:
+              cpu: 1
+              memory: 1Gi
+          replicaCount: 1
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            fsGroup: 2000
+        installCRDs: true
+        rbac:
+          create: true
+        dex:
+          enabled: false  
+        redis:
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+        notifications:
+          enabled: false
+        applicationset:
+          enabled: false      
   destination:
     server: https://kubernetes.default.svc  # In-cluster Kubernetes API
     namespace: argocd  # Dedicated namespace for ArgoCD

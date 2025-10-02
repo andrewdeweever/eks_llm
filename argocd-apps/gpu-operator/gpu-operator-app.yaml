@@ -12,9 +12,73 @@ spec:
     targetRevision: v25.3.4  # Latest stable version as of 2025-10-01; pin for production, check NVIDIA docs for updates
     helm:
       releaseName: gpu-operator
-      valueFiles:
-        - https://raw.githubusercontent.com/andrewdeweever/eks_llm/main/argocd-apps/gpu-operator/gpu-operator-values.yaml  # Replace with your Git repo URL/branch; ArgoCD handles private repo auth
-      # For NGC auth if required: Use helm.parameters with --set global.imagePullSecrets
+      values: |
+        global:
+          imageRegistry: nvcr.io/nvidia  # Default NVIDIA registry
+          imagePullPolicy: IfNotPresent
+        driver:
+          enabled: true
+          version: "570.172.08"
+        toolkit:
+          enabled: false 
+        devicePlugin:
+          enabled: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            fsGroup: 2000
+        containerToolkit:
+          enabled: false
+        dcgm:
+          enabled: true
+          env:
+            - name: DCGM_EXPORTER_NAMESPACE
+              value: gpu-operator
+            - name: DCGM_EXPORTER_INSTALL_DIR
+              value: /usr/local/nvidia/bin
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          nodeSelector:
+            type: gpu
+          tolerations: []
+        nodeFeatureDiscovery:
+          enabled: true
+          cron:
+            schedule: "0 */12 * * *"  # Run every 12 hours
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+          nodeSelector:
+            type: gpu
+        operatorValidator:
+          enabled: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+        clusterPolicy:
+          defaultRuntime: nvidia  # For CUDA workloads
+        crds:
+          enabled: true
   destination:
     server: https://kubernetes.default.svc  # In-cluster Kubernetes API
     namespace: gpu-operator  # Dedicated namespace

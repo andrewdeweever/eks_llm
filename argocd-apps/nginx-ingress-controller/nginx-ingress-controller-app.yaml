@@ -12,9 +12,40 @@ spec:
     targetRevision: 4.13.3  # Latest stable version; pin for production
     helm:
       releaseName: nginx-ingress-controller
-      valueFiles:
-        - https://raw.githubusercontent.com/andrewdeweever/eks_llm/main/argocd-apps/nginx-ingress-controller/nginx-ingress-controller-values.yaml  # Replace with your Git repo URL and branch; supports private repos with ArgoCD credentials
-      # For secrets, use helm.parameters: e.g., --set controller.service.annotations.service\.beta\.kubernetes\.io/aws-load-balancer-ssl-cert=arn:aws:acm:...
+      values: |
+        controller:
+          replicaCount: 2
+          service:
+            type: LoadBalancer 
+            annotations:
+              service.beta.kubernetes.io/aws-load-balancer-type: "nlb"  
+              service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 90Mi
+            limits:
+              cpu: 200m
+              memory: 180Mi
+          config:
+            use-forwarded-headers: "true"
+            compute-full-forwarded-for: "true"
+            use-proxy-protocol: "false" 
+            log-format-upstream: '$remote_addr - $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent" $request_length $request_time $upstream_response_time $pipe $upstream_addr'
+          metrics:
+            enabled: false
+            serviceMonitor:
+              enabled: false  
+          admissionWebhooks:
+            enabled: true
+          podSecurityContext:
+            runAsUser: 101  
+            fsGroup: 101
+          securityContext:
+            allowPrivilegeEscalation: false
+          rbac:
+            create: true
+            scope: cluster  
   destination:
     server: https://kubernetes.default.svc  # In-cluster
     namespace: nginx-ingress  # Dedicated namespace

@@ -12,9 +12,52 @@ spec:
     targetRevision: 1.15.3  # Latest stable; pin for production
     helm:
       releaseName: cert-manager
-      valueFiles:
-        - https://raw.githubusercontent.com/andrewdeweever/eks_llm/main/argocd-apps/cert-manager/cert-manager-values.yaml  # Replace with your Git repo URL/branch; ArgoCD handles private repo auth
-      # For secrets, use helm.parameters, e.g., --set global.leaderElection.namespace=cert-manager
+      values: |
+        installCRDs: true  # Install CRDs with the chart for idempotency
+        replicaCount: 2
+        image:
+          repository: quay.io/jetstack/cert-manager-controller
+          pullPolicy: IfNotPresent
+          # tag: 1.15.3  # Managed by chart version
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 200m
+            memory: 512Mi
+        # Webhook configuration
+        webhook:
+          enabled: true
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 50m
+              memory: 128Mi
+        global:
+          podSecurityPolicy:
+            enabled: false  # Deprecated in newer K8s
+          leaderElection:
+            namespace: cert-manager  # Dedicated namespace
+        extraArgs:
+          - --enable-metrics=true
+        metrics:
+          serviceMonitor:
+            enabled: true  # For Prometheus
+        podSecurityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          fsGroup: 2000
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+        rbac:
+          create: true
+        serviceAccount:
+          create: true
+          annotations: {}
   destination:
     server: https://kubernetes.default.svc
     namespace: cert-manager  # Dedicated namespace
