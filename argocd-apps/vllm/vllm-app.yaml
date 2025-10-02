@@ -57,15 +57,7 @@ spec:
             nvidia.com/gpu: 1
 
         nodeSelector:
-          type: g
-
-        tolerations:
-          - key: nvidia.com/gpu
-            operator: Exists
-            effect: NoSchedule
-
-        affinity: {}
-
+          type: gpu
         vllmConfig:
           model: meta-llama/Llama-2-7b-chat-hf  # Default model, customize as needed
           tensor_parallel_size: 1
