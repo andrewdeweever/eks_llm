@@ -12,4 +12,5 @@ spec:
       name: letsencrypt-prod
     solvers:
       - dns01:
-          route53: {}
+          route53: 
+            region: us-west-2
