@@ -6,7 +6,7 @@
 provider: aws  # Route53 provider
 
 aws:
-  region: us-east-1  # Change to your region
+  region: us-west-2  # Change to your region
   # For IAM roles: use serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn=arn:aws:iam::ACCOUNT:role/external-dns
   # For secrets: create Secret 'external-dns-aws' with keys 'access-key-id', 'secret-access-key'
 
@@ -15,7 +15,10 @@ domainFilters:
 
 policy: sync  # Sync policy: upsert and delete
 
-replicaCount: 2
+sources:
+  - ingress
+
+replicaCount: 1
 
 resources:
   requests:
