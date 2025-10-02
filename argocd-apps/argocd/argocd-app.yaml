@@ -3,6 +3,8 @@ kind: Application
 metadata:
   name: argocd
   namespace: argocd  # Assumes ArgoCD is managing itself; initial bootstrap may require manual install or separate mechanism
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"  
   # Labels: e.g., app.kubernetes.io/name: argocd
 spec:
   project: default  # Dedicated project recommended for production
