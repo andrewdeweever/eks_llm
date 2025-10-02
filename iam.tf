@@ -133,25 +133,27 @@ resource "aws_iam_role" "cert_manager" {
 data "aws_iam_policy_document" "cert_manager_policy" {
   statement {
     effect = "Allow"
-
-    actions = [
-      "route53:ChangeResourceRecordSets"
-    ]
-
-    resources = [
-      "arn:aws:route53:::hostedzone/*" # All hosted zones; restrict to specific zones for least privilege if known
-    ]
+    actions = ["route53:GetChange"]
+    resources = ["arn:aws:route53:::change/*"]
   }
 
   statement {
     effect = "Allow"
-
     actions = [
-      "route53:DescribeHostedZones",
-      "route53:ListHostedZones",
+      "route53:ChangeResourceRecordSets",
       "route53:ListResourceRecordSets"
     ]
+    resources = ["arn:aws:route53:::hostedzone/*"]
+    condition {
+      test     = "ForAllValues:StringEquals"
+      variable = "route53:ChangeResourceRecordSetsRecordTypes"
+      values   = ["TXT"]
+    }
+  }
 
+  statement {
+    effect = "Allow"
+    actions = ["route53:ListHostedZonesByName"]
     resources = ["*"]
   }
 }
