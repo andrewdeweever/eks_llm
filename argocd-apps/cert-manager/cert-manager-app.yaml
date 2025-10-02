@@ -41,11 +41,6 @@ spec:
             enabled: false  # Deprecated in newer K8s
           leaderElection:
             namespace: cert-manager  # Dedicated namespace
-        extraArgs:
-          - --enable-metrics=true
-        metrics:
-          serviceMonitor:
-            enabled: true  # For Prometheus
         podSecurityContext:
           runAsNonRoot: true
           runAsUser: 1000

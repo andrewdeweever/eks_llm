@@ -17,7 +17,7 @@ spec:
           domain: argo.deweever.bsisandbox.com
         configs:
           params:
-            server.insecure: true          
+            server.insecure: true
         server:
           resources:
             requests:
@@ -28,13 +28,16 @@ spec:
               memory: 512Mi
           ingress:
             enabled: true
-            ingressClassName: nginx  
+            ingressClassName: nginx
             annotations:
-              cert-manager.io/cluster-issuer: letsencrypt-prod  
-              nginx.ingress.kubernetes.io/ssl-redirect: "true"  
+              cert-manager.io/cluster-issuer: letsencrypt-prod
+              nginx.ingress.kubernetes.io/ssl-redirect: "true"
             hostname: argo.deweever.bsisandbox.com  # Replace with actual
             path: /
-            tls: false
+            tls:
+              - secretName: argocd-tls  # Secret created by cert-manager
+                hosts:
+                  - argo.deweever.bsisandbox.com
           securityContext:
             runAsNonRoot: true
             runAsUser: 1000
@@ -69,7 +72,7 @@ spec:
         rbac:
           create: true
         dex:
-          enabled: false  
+          enabled: false
         redis:
           resources:
             requests:
@@ -81,7 +84,7 @@ spec:
         notifications:
           enabled: false
         applicationset:
-          enabled: false      
+          enabled: false
   destination:
     server: https://kubernetes.default.svc  # In-cluster Kubernetes API
     namespace: argocd  # Dedicated namespace for ArgoCD
