@@ -45,9 +45,6 @@ spec:
           runAsNonRoot: true
           runAsUser: 1000
           fsGroup: 2000
-        securityContext:
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
         rbac:
           create: true
         serviceAccount:
