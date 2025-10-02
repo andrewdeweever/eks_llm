@@ -14,11 +14,11 @@ spec:
       releaseName: argocd
       values: |
         global:
-          domain: argo.deweever.bsisandbox.com 
+          domain: argo.deweever.bsisandbox.com
+        configs:
+          params:
+            server.insecure: true          
         server:
-          configs:
-            params:
-              server.insecure: true
           resources:
             requests:
               cpu: 250m
