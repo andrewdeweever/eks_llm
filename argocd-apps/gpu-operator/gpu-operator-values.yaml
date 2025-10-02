@@ -28,7 +28,7 @@ toolkit:
 # Device Plugin: Enable for GPU resource allocation
 devicePlugin:
   enabled: true
-  image: nvcr.io/nvidia/k8s-device-plugin:0.15.0
+  # image: nvcr.io/nvidia/k8s-device-plugin:0.15.0
   resources:
     requests:
       cpu: 100m
