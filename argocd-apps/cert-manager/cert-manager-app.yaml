@@ -18,7 +18,6 @@ spec:
         image:
           repository: quay.io/jetstack/cert-manager-controller
           pullPolicy: IfNotPresent
-          # tag: 1.15.3  # Managed by chart version
         resources:
           requests:
             cpu: 100m
@@ -26,7 +25,6 @@ spec:
           limits:
             cpu: 200m
             memory: 512Mi
-        # Webhook configuration
         webhook:
           enabled: true
           resources:
