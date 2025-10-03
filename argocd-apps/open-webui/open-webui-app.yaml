@@ -6,9 +6,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/open-webui/open-webui.git
+    repoURL: hhttps://github.com/open-webui/helm-charts.git
     targetRevision: main
-    path: kubernetes/helm
+    path: charts/open-webui
     helm:
       releaseName: open-webui
       values: |
