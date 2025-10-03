@@ -52,43 +52,43 @@ spec:
           name: cert-manager
           annotations:
             eks.amazonaws.com/role-arn: "arn:aws:iam::704855531002:role/eks-llm-cert-manager"
-      postRenderer: |
-        #!/bin/sh
-        set -e  # Exit on any error
+    postRenderer: |
+      #!/bin/sh
+      set -e  # Exit on any error
 
-        # Create issuer YAML (de-indented; no leading spaces)
-        cat > /tmp/issuer.yaml <<- EOF
-        ---
-        apiVersion: cert-manager.io/v1
-        kind: ClusterIssuer
-        metadata:
-          name: letsencrypt-prod
-          annotations:
-            argocd.argoproj.io/sync-wave: "1"
-        spec:
-          acme:
-            server: https://acme-v02.api.letsencrypt.org/directory
-            email: andrew.deweever@bscanalytics.com
-            privateKeySecretRef:
-              name: letsencrypt-prod
-            solvers:
-            - dns01:
-                route53:
-                  region: us-west-2
-        EOF
+      # Create issuer YAML (de-indented; no leading spaces)
+      cat > /tmp/issuer.yaml <<- EOF
+      ---
+      apiVersion: cert-manager.io/v1
+      kind: ClusterIssuer
+      metadata:
+        name: letsencrypt-prod
+        annotations:
+          argocd.argoproj.io/sync-wave: "1"
+      spec:
+        acme:
+          server: https://acme-v02.api.letsencrypt.org/directory
+          email: andrew.deweever@bscanalytics.com
+          privateKeySecretRef:
+            name: letsencrypt-prod
+          solvers:
+          - dns01:
+              route53:
+                region: us-west-2
+      EOF
 
-        # Validate the issuer YAML
-        if ! kubectl apply --dry-run=client -f /tmp/issuer.yaml; then
-          echo "ERROR: Issuer YAML validation failed" >&2
-          cat /tmp/issuer.yaml >&2  # Log for debug
-          exit 1
-        fi
-        echo "Issuer YAML validated successfully" >&2
+      # Validate the issuer YAML
+      if ! kubectl apply --dry-run=client -f /tmp/issuer.yaml; then
+        echo "ERROR: Issuer YAML validation failed" >&2
+        cat /tmp/issuer.yaml >&2  # Log for debug
+        exit 1
+      fi
+      echo "Issuer YAML validated successfully" >&2
 
-        # Merge: Append to input
-        cat - /tmp/issuer.yaml
+      # Merge: Append to input
+      cat - /tmp/issuer.yaml
 
-        echo "PostRenderer completed: ClusterIssuer appended" >&2
+      echo "PostRenderer completed: ClusterIssuer appended" >&2
   destination:
     server: https://kubernetes.default.svc
     namespace: cert-manager  # Dedicated namespace
