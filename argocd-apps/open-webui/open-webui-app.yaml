@@ -1,0 +1,96 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: open-webui
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/open-webui/open-webui.git
+    targetRevision: main
+    path: kubernetes/helm
+    helm:
+      releaseName: open-webui
+      values: |
+        replicaCount: 1
+
+        image:
+          repository: ghcr.io/open-webui/open-webui
+          pullPolicy: IfNotPresent
+          tag: "latest"
+
+        env:
+          WEBUI_SECRET_KEY: "your-secret-key-change-in-prod"
+          OLLAMA_BASE_URL: "http://ollama-service.default.svc.cluster.local:11434"
+          DATABASE_URL: "postgresql://openwebui:strong-db-pass@open-webui-postgresql:5432/openwebui"
+
+        ingress:
+          enabled: true
+          className: "aws-alb"
+          annotations:
+            alb.ingress.kubernetes.io/scheme: internet-facing
+            alb.ingress.kubernetes.io/target-type: ip
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+          hosts:
+            - host: open-webui.deweever.bsisandbox.com
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - secretName: open-webui-tls
+              hosts:
+                - open-webui.deweever.bsisandbox.com
+
+        service:
+          type: ClusterIP
+          port: 8080
+
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+          requests:
+            cpu: 500m
+            memory: 1Gi
+
+        persistence:
+          enabled: true
+          size: 5Gi
+          storageClass: "gp3"
+          mountPath: "/app/backend/data"
+
+        postgresql:
+          enabled: true
+          auth:
+            postgresPassword: "strong-db-pass"
+            username: "openwebui"
+            database: "openwebui"
+          primary:
+            persistence:
+              enabled: true
+              size: 10Gi
+              storageClass: "gp3"
+
+        nodeSelector: {}
+        tolerations: []
+
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 5
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: open-webui
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

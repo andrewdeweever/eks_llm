@@ -79,6 +79,20 @@ module "eks" {
       ami_type       = "AL2023_x86_64_STANDARD"
       key_name       = aws_key_pair.eks.key_name
       labels         = { "type" : "cpu" }
+      block_device_mappings = {
+        # Root volume (increase size here)
+        xvda = {
+          device_name = "/dev/xvda"
+          ebs = {
+            volume_size           = 100 # New size in GiB (default is ~20)
+            volume_type           = "gp3"
+            delete_on_termination = true
+            encrypted             = true
+            # Optional: iops = 3000  # For higher performance
+            # throughput = 125  # For gp3 (MiB/s)
+          }
+        }
+      }
     }
     gpu = {
       min_size       = 1
@@ -89,6 +103,27 @@ module "eks" {
       ami_type       = "AL2023_x86_64_NVIDIA"
       key_name       = aws_key_pair.eks.key_name
       labels         = { "type" : "gpu" }
+      block_device_mappings = {
+        # Root volume (increase size here)
+        xvda = {
+          device_name = "/dev/xvda"
+          ebs = {
+            volume_size           = 100 # New size in GiB (default is ~20)
+            volume_type           = "gp3"
+            delete_on_termination = true
+            encrypted             = true
+            # Optional: iops = 3000  # For higher performance
+            # throughput = 125  # For gp3 (MiB/s)
+          }
+        }
+      }
+      taints = {
+        gpu-dedicated = {
+          key    = "nvidia.com/gpu"
+          value  = "true"
+          effect = "NO_SCHEDULE" # Value optional for key-only
+        }
+      }
     }
   }
 }

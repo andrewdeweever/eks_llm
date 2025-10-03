@@ -20,8 +20,8 @@ spec:
             release: "vllm"
           modelSpec:
             - name: "llama2-7b"
-              repository: "ghcr.io/vllm-project/vllm-openai"
-              tag: "0.5.1"
+              repository: "vllm/vllm-openai"
+              tag: "latest"
               modelURL: "meta-llama/Llama-2-7b-chat-hf"
               replicaCount: 1
               requestCPU: 2
@@ -29,6 +29,12 @@ spec:
               requestGPU: 1
               limitCPU: "4"
               limitMemory: "16Gi"
+              env:
+                - name: HUGGING_FACE_HUB_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: hf-token-secret
+                      key: token
               vllmConfig:
                 tensor_parallel_size: 1
                 max_model_len: 4096
@@ -40,7 +46,10 @@ spec:
                       values:
                         - gpu
               runtimeClassName: "nvidia"
-              tolerations: []
+              tolerations:
+                - key: "nvidia.com/gpu"
+                  operator: "Exists"
+                  effect: "NoSchedule"
               securityContext: {}
               containerSecurityContext:
                 runAsNonRoot: false
@@ -61,7 +70,6 @@ spec:
             httpGet:
               path: /health
               port: 8000
-
         routerSpec:
           enableRouter: true
           replicaCount: 1
@@ -95,8 +103,10 @@ spec:
                 hosts:
                   - vllm.deweever.bsisandbox.com
           nodeSelectorTerms: []
-          tolerations: []
-
+          tolerations: 
+            - key: "nvidia.com/gpu"
+              operator: "Exists"
+              effect: "NoSchedule"
         loraAdapters: []
         loraController:
           enableLoraController: false      
