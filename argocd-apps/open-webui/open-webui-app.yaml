@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: hhttps://github.com/open-webui/helm-charts.git
+    repoURL: https://github.com/open-webui/helm-charts.git
     targetRevision: main
     path: charts/open-webui
     helm:
