@@ -3,9 +3,6 @@ kind: Application
 metadata:
   name: cert-manager
   namespace: argocd  # Assumes ArgoCD in 'argocd' namespace
-  annotations:
-    argocd.argoproj.io/sync-wave: "-1"
-  # Labels: e.g., app.kubernetes.io/name: cert-manager
 spec:
   project: default  # Dedicated project recommended
   source:
@@ -52,43 +49,6 @@ spec:
           name: cert-manager
           annotations:
             eks.amazonaws.com/role-arn: "arn:aws:iam::704855531002:role/eks-llm-cert-manager"
-    postRenderer: |
-      #!/bin/sh
-      set -e  # Exit on any error
-
-      # Create issuer YAML (de-indented; no leading spaces)
-      cat > /tmp/issuer.yaml <<- EOF
-      ---
-      apiVersion: cert-manager.io/v1
-      kind: ClusterIssuer
-      metadata:
-        name: letsencrypt-prod
-        annotations:
-          argocd.argoproj.io/sync-wave: "1"
-      spec:
-        acme:
-          server: https://acme-v02.api.letsencrypt.org/directory
-          email: andrew.deweever@bscanalytics.com
-          privateKeySecretRef:
-            name: letsencrypt-prod
-          solvers:
-          - dns01:
-              route53:
-                region: us-west-2
-      EOF
-
-      # Validate the issuer YAML
-      if ! kubectl apply --dry-run=client -f /tmp/issuer.yaml; then
-        echo "ERROR: Issuer YAML validation failed" >&2
-        cat /tmp/issuer.yaml >&2  # Log for debug
-        exit 1
-      fi
-      echo "Issuer YAML validated successfully" >&2
-
-      # Merge: Append to input
-      cat - /tmp/issuer.yaml
-
-      echo "PostRenderer completed: ClusterIssuer appended" >&2
   destination:
     server: https://kubernetes.default.svc
     namespace: cert-manager  # Dedicated namespace
@@ -100,6 +60,3 @@ spec:
       - CreateNamespace=true
       - ServerSideApply=true
       - Validate=true
-    # Sync waves: CRDs first if needed, but installCRDs=true handles
-  # info: {}  # Optional: Add post-sync hooks for ClusterIssuer
-  # Assumptions: AWS EKS; post-install: Create ClusterIssuer for Let's Encrypt as noted in values.yaml
