@@ -54,8 +54,11 @@ spec:
             eks.amazonaws.com/role-arn: "arn:aws:iam::704855531002:role/eks-llm-cert-manager"
       postRenderer: |
         #!/bin/sh
-        # Append the ClusterIssuer YAML after core manifests
+        set -e  # Exit on any error
+
+        # Create issuer YAML (de-indented; no leading spaces)
         cat > /tmp/issuer.yaml <<- EOF
+        ---
         apiVersion: cert-manager.io/v1
         kind: ClusterIssuer
         metadata:
@@ -69,12 +72,23 @@ spec:
             privateKeySecretRef:
               name: letsencrypt-prod
             solvers:
-              - dns01:
-                  route53: 
-                    region: us-west-2
+            - dns01:
+                route53:
+                  region: us-west-2
         EOF
-        # Merge issuer into manifests (simple cat; use yq for complex)
-        cat $INFILE /tmp/issuer.yaml > $OUTFILE            
+
+        # Validate the issuer YAML
+        if ! kubectl apply --dry-run=client --server-side -f /tmp/issuer.yaml; then
+          echo "ERROR: Issuer YAML validation failed"
+          cat /tmp/issuer.yaml  # Log for debug
+          exit 1
+        fi
+        echo "Issuer YAML validated successfully"
+
+        # Merge: Append to input
+        cat $INFILE /tmp/issuer.yaml > $OUTFILE
+
+        echo "PostRenderer completed: ClusterIssuer appended"
   destination:
     server: https://kubernetes.default.svc
     namespace: cert-manager  # Dedicated namespace
@@ -84,7 +98,8 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-      - ApplyOutOfSyncOnly=true
+      - ServerSideApply=true
+      - Validate=true
     # Sync waves: CRDs first if needed, but installCRDs=true handles
   # info: {}  # Optional: Add post-sync hooks for ClusterIssuer
   # Assumptions: AWS EKS; post-install: Create ClusterIssuer for Let's Encrypt as noted in values.yaml
