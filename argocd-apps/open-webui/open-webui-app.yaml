@@ -26,20 +26,13 @@ spec:
 
         ingress:
           enabled: true
-          className: "aws-alb"
+          class: "nginx"
           annotations:
             alb.ingress.kubernetes.io/scheme: internet-facing
             alb.ingress.kubernetes.io/target-type: ip
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
-          hosts:
-            - host: open-webui.deweever.bsisandbox.com
-              paths:
-                - path: /
-                  pathType: Prefix
-          tls:
-            - secretName: open-webui-tls
-              hosts:
-                - open-webui.deweever.bsisandbox.com
+          host: open-webui.deweever.bsisandbox.com
+          tls: true
 
         service:
           type: ClusterIP
@@ -82,7 +75,7 @@ spec:
           httpGet:
             path: /
             port: 8080
-          initialDelaySeconds: 5
+          initialDelaySeconds: 50
   destination:
     server: https://kubernetes.default.svc
     namespace: open-webui
