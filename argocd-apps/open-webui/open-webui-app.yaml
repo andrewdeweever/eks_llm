@@ -31,7 +31,7 @@ spec:
             alb.ingress.kubernetes.io/scheme: internet-facing
             alb.ingress.kubernetes.io/target-type: ip
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
-          hosts open-webui.deweever.bsisandbox.com
+          host: open-webui.deweever.bsisandbox.com
           tls: true
 
         service:
