@@ -78,17 +78,17 @@ spec:
         EOF
 
         # Validate the issuer YAML
-        if ! kubectl apply --dry-run=client --server-side -f /tmp/issuer.yaml; then
-          echo "ERROR: Issuer YAML validation failed"
-          cat /tmp/issuer.yaml  # Log for debug
+        if ! kubectl apply --dry-run=client -f /tmp/issuer.yaml; then
+          echo "ERROR: Issuer YAML validation failed" >&2
+          cat /tmp/issuer.yaml >&2  # Log for debug
           exit 1
         fi
-        echo "Issuer YAML validated successfully"
+        echo "Issuer YAML validated successfully" >&2
 
         # Merge: Append to input
-        cat $INFILE /tmp/issuer.yaml > $OUTFILE
+        cat - /tmp/issuer.yaml
 
-        echo "PostRenderer completed: ClusterIssuer appended"
+        echo "PostRenderer completed: ClusterIssuer appended" >&2
   destination:
     server: https://kubernetes.default.svc
     namespace: cert-manager  # Dedicated namespace
