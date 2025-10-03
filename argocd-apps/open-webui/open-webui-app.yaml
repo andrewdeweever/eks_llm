@@ -6,9 +6,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/open-webui/helm-charts.git
+    repoURL: https://github.com/open-webui/open-webui.git
     targetRevision: main
-    path: charts/open-webui
+    path: kubernetes/helm
     helm:
       releaseName: open-webui
       values: |
@@ -26,13 +26,20 @@ spec:
 
         ingress:
           enabled: true
-          class: "nginx"
+          className: "aws-alb"
           annotations:
             alb.ingress.kubernetes.io/scheme: internet-facing
             alb.ingress.kubernetes.io/target-type: ip
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
-          host: open-webui.deweever.bsisandbox.com
-          tls: true
+          hosts:
+            - host: open-webui.deweever.bsisandbox.com
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - secretName: open-webui-tls
+              hosts:
+                - open-webui.deweever.bsisandbox.com
 
         service:
           type: ClusterIP
@@ -49,7 +56,6 @@ spec:
         persistence:
           enabled: true
           size: 5Gi
-          storageClass: "gp3"
           mountPath: "/app/backend/data"
 
         postgresql:
@@ -62,7 +68,6 @@ spec:
             persistence:
               enabled: true
               size: 10Gi
-              storageClass: "gp3"
 
         nodeSelector: {}
         tolerations: []
