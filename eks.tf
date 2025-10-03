@@ -73,7 +73,7 @@ module "eks" {
     cpu = {
       min_size       = 1
       max_size       = 3
-      desired_size   = 1
+      desired_size   = 2
       disk_size      = 100
       instance_types = ["m5.large"]
       ami_type       = "AL2023_x86_64_STANDARD"

@@ -20,6 +20,8 @@ resource "kubernetes_secret" "git-repo" {
     password = var.git_password
     type     = "git"
   }
+
+  depends_on = [helm_release.argocd]
 }
 
 # resource "helm_release" "gpu_operator" {

@@ -55,7 +55,7 @@ spec:
       postRenderer: |
         #!/bin/sh
         # Append the ClusterIssuer YAML after core manifests
-        cat > /tmp/issuer.yaml << EOF
+        cat > /tmp/issuer.yaml <<- EOF
         apiVersion: cert-manager.io/v1
         kind: ClusterIssuer
         metadata:
