@@ -19,10 +19,10 @@ spec:
           pullPolicy: IfNotPresent
           tag: "latest"
 
-        env:
-          WEBUI_SECRET_KEY: "your-secret-key-change-in-prod"
-          OLLAMA_BASE_URL: "http://ollama-service.default.svc.cluster.local:11434"
-          DATABASE_URL: "postgresql://openwebui:strong-db-pass@open-webui-postgresql:5432/openwebui"
+        # env:
+        #   WEBUI_SECRET_KEY: "your-secret-key-change-in-prod"
+        #   OLLAMA_BASE_URL: "http://ollama-service.default.svc.cluster.local:11434"
+        #   DATABASE_URL: "postgresql://openwebui:strong-db-pass@open-webui-postgresql:5432/openwebui"
 
         ingress:
           enabled: true
@@ -50,17 +50,7 @@ spec:
           enabled: true
           size: 5Gi
           mountPath: "/app/backend/data"
-
-        postgresql:
-          enabled: true
-          auth:
-            postgresPassword: "strong-db-pass"
-            username: "openwebui"
-            database: "openwebui"
-          primary:
-            persistence:
-              enabled: true
-              size: 10Gi
+          storageClass: "gp2"
 
         nodeSelector: {}
         tolerations: []
