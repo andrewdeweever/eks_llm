@@ -35,8 +35,6 @@ spec:
                     secretKeyRef:
                       name: hf-token-secret
                       key: token
-                - name: PYTORCH_CUDA_ALLOC_CONF
-                  value: "expandable_segments:True"
               vllmConfig:
                 extraArgs:
                   - "--gpu-memory-utilization"
@@ -93,7 +91,7 @@ spec:
             environment: "production"
             release: "vllm"
           ingress:
-            enabled: true
+            enabled: false
             className: "nginx"
             annotations:
               cert-manager.io/cluster-issuer: "letsencrypt-prod"

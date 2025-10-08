@@ -19,10 +19,11 @@ spec:
           pullPolicy: IfNotPresent
           tag: "latest"
 
-        # env:
-        #   WEBUI_SECRET_KEY: "your-secret-key-change-in-prod"
-        #   OLLAMA_BASE_URL: "http://ollama-service.default.svc.cluster.local:11434"
-        #   DATABASE_URL: "postgresql://openwebui:strong-db-pass@open-webui-postgresql:5432/openwebui"
+        env:
+          WEBUI_SECRET_KEY: "your-secret-key-change-in-prod"
+          OLLAMA_BASE_URL: "http://ollama-service.default.svc.cluster.local:11434"
+          DATABASE_URL: "postgresql://openwebui:strong-db-pass@open-webui-postgresql:5432/openwebui"
+          OPENAI_API_BASE: "http://vllm-router-service.vllm/v1"
 
         ingress:
           enabled: true
@@ -66,6 +67,8 @@ spec:
             path: /
             port: 8080
           initialDelaySeconds: 50
+        ollama:
+          enabled: false
   destination:
     server: https://kubernetes.default.svc
     namespace: open-webui

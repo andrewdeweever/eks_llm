@@ -115,7 +115,7 @@ module "eks" {
       max_size       = 3
       desired_size   = 1
       disk_size      = 100
-      instance_types = ["g4dn.xlarge"]
+      instance_types = ["g5.xlarge"]
       ami_type       = "AL2023_x86_64_NVIDIA"
       key_name       = aws_key_pair.eks.key_name
       labels         = { "type" : "gpu" }
