@@ -38,9 +38,9 @@ spec:
               vllmConfig:
                 extraArgs:
                   - "--gpu-memory-utilization"
-                  - "0.75"
+                  - "0.9"
                   - "--max-model-len"
-                  - "2048"
+                  - "4096"
                   - "--enforce-eager"
               nodeSelectorTerms:
                 - matchExpressions:
