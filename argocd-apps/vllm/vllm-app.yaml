@@ -39,8 +39,9 @@ spec:
                   value: "expandable_segments:True"
               vllmConfig:
                 tensor_parallel_size: 1
-                max_model_len: 4096
-                gpu_memory_utilization: 0.85
+                max_model_len: 2048
+                gpu_memory_utilization: 0.75
+                enforce_eager: true
               nodeSelectorTerms:
                 - matchExpressions:
                     - key: type
