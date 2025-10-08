@@ -2,3 +2,4 @@
 terraform.tfstate*
 privkey.pem
 plan.out
+hf-token-secret.yaml
