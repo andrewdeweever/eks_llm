@@ -7,7 +7,6 @@ spec:
   project: default  # Dedicated project recommended
   sources:
   - repoURL: https://charts.jetstack.io  # Official Helm repo
-    targetNamespace: cert-manager
     chart: cert-manager
     targetRevision: 1.15.3  # Latest stable; pin for production
     helm:
@@ -52,7 +51,6 @@ spec:
             eks.amazonaws.com/role-arn: "arn:aws:iam::704855531002:role/eks-llm-cert-manager"
   - repoURL: https://github.com/andrewdeweever/eks_llm
     targetRevision: HEAD
-    targetNamespace: ""
     path: cert-manager-resources
     directory:
       recurse: true
