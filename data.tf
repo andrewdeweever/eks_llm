@@ -23,8 +23,10 @@ data "aws_route53_zone" "zone" {
   private_zone = false
 }
 
-# data "aws_lb" "argocd" {
-#   name = var.argocd_lb_name
+resource "null_resource" "update_kubeconfig" {
+  depends_on = [module.eks]
 
-#   depends_on = [helm_release.argocd]
-# }
+  provisioner "local-exec" {
+    command = "aws eks update-kubeconfig --name ${module.eks.cluster_name} --region ${var.aws_region}"
+  }
+}

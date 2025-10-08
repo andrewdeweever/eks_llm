@@ -22,7 +22,7 @@ spec:
             - name: "llama2-7b"
               repository: "vllm/vllm-openai"
               tag: "latest"
-              modelURL: "openai/gpt-oss-20b"
+              modelURL: "deepseek-ai/DeepSeek-R1-Distill-Llama-8B"
               replicaCount: 1
               requestCPU: 2
               requestMemory: "8Gi"
