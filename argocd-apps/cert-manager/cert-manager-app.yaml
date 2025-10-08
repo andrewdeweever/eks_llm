@@ -5,8 +5,8 @@ metadata:
   namespace: argocd  # Assumes ArgoCD in 'argocd' namespace
 spec:
   project: default  # Dedicated project recommended
-  source:
-    repoURL: https://charts.jetstack.io  # Official Helm repo
+  sources:
+  - repoURL: https://charts.jetstack.io  # Official Helm repo
     chart: cert-manager
     targetRevision: 1.15.3  # Latest stable; pin for production
     helm:
@@ -49,9 +49,16 @@ spec:
           name: cert-manager
           annotations:
             eks.amazonaws.com/role-arn: "arn:aws:iam::704855531002:role/eks-llm-cert-manager"
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: cert-manager  # Dedicated namespace
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: cert-manager
+  - repoURL: https://github.com/andrewdeweever/eks_llm
+    targetRevision: HEAD
+    path: cert-manager-resources
+    directory:
+      recurse: true
+    destination:
+      server: https://kubernetes.default.svc
   syncPolicy:
     automated:
       prune: true

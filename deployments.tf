@@ -242,3 +242,28 @@ resource "kubectl_manifest" "argocd_root_app" {
 
 # Note: This "App of Apps" pattern deploys all sub-apps in argocd-apps/. For private repo, the git-repo secret handles auth.
 # Best practices: Use a dedicated ArgoCD project for apps; add sync waves if ordering matters (e.g., cert-manager before ingress).
+
+resource "kubernetes_storage_class" "gp3" {
+  metadata {
+    name = "gp3"
+    annotations = {
+      "storageclass.kubernetes.io/is-default-class" = "true"
+    }
+  }
+
+  storage_provisioner = "ebs.csi.aws.com"
+  volume_binding_mode = "WaitForFirstConsumer"
+  reclaim_policy      = "Delete"
+
+  parameters = {
+    type      = "gp3"
+    encrypted = "true"
+  }
+
+  allow_volume_expansion = true
+
+  depends_on = [module.eks]
+}
+
+# Note: This "App of Apps" pattern deploys all sub-apps in argocd-apps/. For private repo, the git-repo secret handles auth.
+# Best practices: Use a dedicated ArgoCD project for apps; add sync waves if ordering matters (e.g., cert-manager before ingress).
