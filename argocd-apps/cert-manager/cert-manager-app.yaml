@@ -54,10 +54,9 @@ spec:
     path: cert-manager-resources
     directory:
       recurse: true
-  destinations:
+  destination:
   - server: https://kubernetes.default.svc
     namespace: cert-manager
-  - server: https://kubernetes.default.svc
   syncPolicy:
     automated:
       prune: true
