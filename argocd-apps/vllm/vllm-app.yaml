@@ -38,10 +38,12 @@ spec:
                 - name: PYTORCH_CUDA_ALLOC_CONF
                   value: "expandable_segments:True"
               vllmConfig:
-                tensor_parallel_size: 1
-                max_model_len: 2048
-                gpu_memory_utilization: 0.75
-                enforce_eager: true
+                extraArgs:
+                  - "--gpu-memory-utilization"
+                  - "0.75"
+                  - "--max-model-len"
+                  - "2048"
+                  - "--enforce-eager"
               nodeSelectorTerms:
                 - matchExpressions:
                     - key: type
