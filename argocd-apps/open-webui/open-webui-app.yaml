@@ -32,6 +32,9 @@ spec:
             alb.ingress.kubernetes.io/scheme: internet-facing
             alb.ingress.kubernetes.io/target-type: ip
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
+            nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+            nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+            nginx.ingress.kubernetes.io/ssl-redirect: "true"        
           host: open-webui.deweever.bsisandbox.com
           tls: true
 
