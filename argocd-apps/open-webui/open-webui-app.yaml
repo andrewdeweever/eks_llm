@@ -21,9 +21,7 @@ spec:
 
         env:
           WEBUI_SECRET_KEY: "your-secret-key-change-in-prod"
-          OLLAMA_BASE_URL: "http://ollama-service.default.svc.cluster.local:11434"
-          DATABASE_URL: "postgresql://openwebui:strong-db-pass@open-webui-postgresql:5432/openwebui"
-          OPENAI_API_BASE: "http://vllm-router-service.vllm/v1"
+          OPENAI_API_BASE_URLS: "http://vllm-router-service.vllm/v1"
 
         ingress:
           enabled: true
