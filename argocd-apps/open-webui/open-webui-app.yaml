@@ -19,9 +19,11 @@ spec:
           pullPolicy: IfNotPresent
           tag: "latest"
 
-        env:
-          WEBUI_SECRET_KEY: "your-secret-key-change-in-prod"
-          OPENAI_API_BASE_URLS: "http://vllm-router-service.vllm/v1"
+        extraEnvVars:
+          - name: "WEBUI_SECRET_KEY"
+            value: "your-secret-key-change-in-prod"
+
+        openaiBaseApiUrl: "http://vllm-router-service.vllm/v1"
 
         ingress:
           enabled: true
