@@ -69,6 +69,8 @@ spec:
           initialDelaySeconds: 50
         ollama:
           enabled: false
+        pipelines:
+          enabled: false
   destination:
     server: https://kubernetes.default.svc
     namespace: open-webui
