@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rag-ingestion
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/adeweever/llm-eks-cluster.git  # Update to your actual repo URL
+    targetRevision: HEAD
+    path: rag/ingestion
+    kustomize: {}  # Assumes job.yaml is in path; ArgoCD will apply it
+    # Note: Build and push Docker image to ECR separately (e.g., via CI/CD or manual docker build/push).
+    # Image: Update job.yaml with actual ECR URI after push, e.g., ${AWS_ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com/rag-ingestion:latest
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: rag
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+  # To trigger ingestion: Sync the app in ArgoCD; it will create the Job. Re-run by deleting completed Job or using CronJob for periodic.

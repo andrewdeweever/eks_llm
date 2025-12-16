@@ -1,0 +1,49 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rag-ingestion-job
+  namespace: rag
+spec:
+  template:
+    spec:
+      serviceAccountName: rag-service  # Links to IRSA for S3 access
+      restartPolicy: OnFailure
+      containers:
+      - name: ingester
+        image: your-ecr-repo/rag-ingestion:latest  # Replace with actual ECR image after build/push
+        env:
+        - name: S3_BUCKET
+          value: "eks-llm-rag-documents-dev"  # From Terraform output
+        - name: S3_PREFIX
+          value: "documents/"
+        - name: EMBEDDING_ENDPOINT
+          value: "http://vllm-router-service.vllm.svc.cluster.local/v1"
+        - name: OPENAI_API_KEY
+          value: "dummy-key"
+        - name: INDEX_KEY
+          value: "vector_index.faiss"
+        - name: METADATA_KEY
+          value: "metadata.pkl"
+        - name: CHUNK_SIZE
+          value: "500"
+        - name: CHUNK_OVERLAP
+          value: "50"
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+        volumeMounts: []  # Add if needed for local storage
+      volumes: []  # Add if needed
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 300  # Clean up job after 5 min
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rag-service
+  namespace: rag
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::ACCOUNT_ID:role/eks-llm-rag-s3"  # Replace with actual role ARN from Terraform

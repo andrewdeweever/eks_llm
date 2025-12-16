@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: alb-controller
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  source:
+    repoURL: https://aws.github.io/eks-charts
+    chart: aws-load-balancer-controller
+    targetRevision: v2.8.3
+    helm:
+      releaseName: aws-load-balancer-controller
+      values: |
+        clusterName: eks-llm-eks  # From var.project_name default
+        vpcId: vpc-1234567890abcdef0  # Replace with actual VPC ID from module.vpc.vpc_id
+        subnetIds:
+          - subnet-1234567890abcdef0  # Replace with actual public subnet IDs from module.vpc.public_subnets
+          - subnet-abcdef1234567890  # Add more as needed
+        serviceAccount:
+          create: true
+          name: aws-load-balancer-controller
+          annotations:
+            eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/eks-llm-aws-load-balancer-controller  # Replace with actual IAM role ARN
+        ingress:
+          enabled: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

@@ -57,6 +57,42 @@ spec:
               containerSecurityContext:
                 runAsNonRoot: false
                 allowPrivilegeEscalation: false
+            - name: "embedding-model"
+              repository: "vllm/vllm-openai"
+              tag: "latest"
+              modelURL: "sentence-transformers/all-MiniLM-L6-v2"
+              replicaCount: 1
+              requestCPU: 1
+              requestMemory: "4Gi"
+              requestGPU: 0  # Embeddings can run on CPU for lightweight models, or 1 if GPU needed
+              limitCPU: "2"
+              limitMemory: "8Gi"
+              env:
+                - name: HUGGING_FACE_HUB_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: hf-token-secret
+                      key: token
+              vllmConfig:
+                extraArgs:
+                  - "--gpu-memory-utilization"
+                  - "0.5"  # Lower for embeddings
+                  - "--enforce-eager"
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: type
+                      operator: In
+                      values:
+                        - gpu  # Or omit for CPU-only
+              runtimeClassName: "nvidia"  # If using GPU
+              tolerations:
+                - key: "nvidia.com/gpu"
+                  operator: "Exists"
+                  effect: "NoSchedule"
+              securityContext: {}
+              containerSecurityContext:
+                runAsNonRoot: false
+                allowPrivilegeEscalation: false
           containerPort: 8000
           servicePort: 80
           startupProbe:

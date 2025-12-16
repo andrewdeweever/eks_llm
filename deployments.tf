@@ -50,53 +50,6 @@ resource "kubernetes_secret" "git-repo" {
 #   depends_on = [module.eks]
 # }
 
-# IAM Role for AWS Load Balancer Controller
-resource "aws_iam_role" "aws-load-balancer-controller-role" {
-  name = "${var.project_name}-aws-load-balancer-controller"
-
-  assume_role_policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "",
-      "Effect": "Allow",
-      "Principal": {
-        "Federated": "${module.eks.oidc_provider_arn}"
-      },
-      "Action": "sts:AssumeRoleWithWebIdentity",
-      "Condition": {
-        "StringEquals": {
-          "${replace(module.eks.cluster_oidc_issuer_url, "https://", "")}:sub": "system:serviceaccount:kube-system:aws-load-balancer-controller",
-          "${replace(module.eks.cluster_oidc_issuer_url, "https://", "")}:aud": "sts.amazonaws.com"
-        }
-      }
-    }
-  ]
-}
-POLICY
-
-  depends_on = [module.eks]
-
-  tags = {
-    "ServiceAccountName"      = "aws-load-balancer-controller"
-    "ServiceAccountNameSpace" = "kube-system"
-  }
-}
-
-resource "aws_iam_policy" "aws-load-balancer-controller" {
-  name        = "${var.project_name}-aws-load-balancer-controller-policy"
-  description = "Policy which will be used for creating alb from the aws lb controller."
-
-  policy = file("iam_policy.json")
-}
-
-
-resource "aws_iam_role_policy_attachment" "aws-load-balancer-controller" {
-  role       = aws_iam_role.aws-load-balancer-controller-role.name
-  policy_arn = aws_iam_policy.aws-load-balancer-controller.arn
-}
-
 resource "helm_release" "alb_controller" {
   name       = "aws-load-balancer-controller"
   repository = "https://aws.github.io/eks-charts"
