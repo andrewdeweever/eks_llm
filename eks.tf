@@ -1,8 +1,8 @@
 module "ebs_csi_irsa_role" {
-  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version = "~> 5.0"
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts"
+  version = "~> 6.0"
 
-  role_name             = "${var.project_name}-ebs-csi"
+  name                  = "${var.project_name}-ebs-csi"
   attach_ebs_csi_policy = true
 
   oidc_providers = {
@@ -57,7 +57,7 @@ module "eks" {
       most_recent = true
     }
     aws-ebs-csi-driver = {
-      service_account_role_arn = module.ebs_csi_irsa_role.iam_role_arn
+      service_account_role_arn = module.ebs_csi_irsa_role.arn
       most_recent              = true
     }
   }
@@ -115,7 +115,7 @@ module "eks" {
       max_size       = 3
       desired_size   = 1
       disk_size      = 100
-      instance_types = ["g5.xlarge"]
+      instance_types = ["g6.xlarge"]
       ami_type       = "AL2023_x86_64_NVIDIA"
       key_name       = aws_key_pair.eks.key_name
       labels         = { "type" : "gpu" }

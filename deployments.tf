@@ -4,7 +4,7 @@
 #   }
 # }
 
-resource "kubernetes_secret" "git-repo" {
+resource "kubernetes_secret_v1" "git-repo" {
   metadata {
     name      = "argocd-git-repo-creds"
     namespace = "argocd"
@@ -239,13 +239,13 @@ resource "kubectl_manifest" "argocd_root_app" {
     }
   })
 
-  depends_on = [helm_release.argocd, kubernetes_secret.git-repo, module.eks] # Ensure ArgoCD and repo creds are ready
+  depends_on = [helm_release.argocd, kubernetes_secret_v1.git-repo, module.eks] # Ensure ArgoCD and repo creds are ready
 }
 
 # Note: This "App of Apps" pattern deploys all sub-apps in argocd-apps/. For private repo, the git-repo secret handles auth.
 # Best practices: Use a dedicated ArgoCD project for apps; add sync waves if ordering matters (e.g., cert-manager before ingress).
 
-resource "kubernetes_storage_class" "gp3" {
+resource "kubernetes_storage_class_v1" "gp3" {
   metadata {
     name = "gp3"
     annotations = {
