@@ -11,7 +11,7 @@ spec:
   source:
     repoURL: https://kubernetes.github.io/ingress-nginx  # Official Helm repo
     chart: ingress-nginx
-    targetRevision: 4.13.3  # Latest stable version; pin for production
+    targetRevision: 4.14.2  # Latest stable version; pin for production
     helm:
       releaseName: nginx-ingress-controller
       values: |

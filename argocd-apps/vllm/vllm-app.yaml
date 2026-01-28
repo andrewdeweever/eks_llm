@@ -1,128 +1,128 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: vllm
-  namespace: argocd  # Assumes ArgoCD is installed in 'argocd' namespace; adjust if different
-  # Add labels or annotations if needed, e.g., finalizers: [resources-finalizer.argocd.argoproj.io]
-spec:
-  project: default  # Assumes default ArgoCD project; create a dedicated project for better isolation
-  source:
-    repoURL: https://vllm-project.github.io/production-stack
-    chart: vllm-stack
-    targetRevision: 0.1.7
-    helm:
-      releaseName: vllm
-      values: |
-        servingEngineSpec:
-          enableEngine: true
-          labels:
-            environment: "production"
-            release: "vllm"
-          modelSpec:
-            - name: "llama2-7b"
-              repository: "vllm/vllm-openai"
-              tag: "latest"
-              modelURL: "deepseek-ai/DeepSeek-R1-Distill-Llama-8B"
-              replicaCount: 1
-              requestCPU: 2
-              requestMemory: "8Gi"
-              requestGPU: 1
-              limitCPU: "4"
-              limitMemory: "16Gi"
-              env:
-                - name: HUGGING_FACE_HUB_TOKEN
-                  valueFrom:
-                    secretKeyRef:
-                      name: hf-token-secret
-                      key: token
-              vllmConfig:
-                extraArgs:
-                  - "--gpu-memory-utilization"
-                  - "0.9"
-                  - "--max-model-len"
-                  - "4096"
-                  - "--enforce-eager"
-              nodeSelectorTerms:
-                - matchExpressions:
-                    - key: type
-                      operator: In
-                      values:
-                        - gpu
-              runtimeClassName: "nvidia"
-              tolerations:
-                - key: "nvidia.com/gpu"
-                  operator: "Exists"
-                  effect: "NoSchedule"
-              securityContext: {}
-              containerSecurityContext:
-                runAsNonRoot: false
-                allowPrivilegeEscalation: false
-          containerPort: 8000
-          servicePort: 80
-          startupProbe:
-            initialDelaySeconds: 15
-            periodSeconds: 10
-            failureThreshold: 60
-            httpGet:
-              path: /health
-              port: 8000
-          livenessProbe:
-            initialDelaySeconds: 15
-            failureThreshold: 3
-            periodSeconds: 10
-            httpGet:
-              path: /health
-              port: 8000
-        routerSpec:
-          enableRouter: true
-          replicaCount: 1
-          containerPort: 8000
-          servicePort: 80
-          serviceType: ClusterIP
-          serviceDiscovery: "k8s"
-          routingLogic: "roundrobin"
-          resources:
-            requests:
-              cpu: 400m
-              memory: 500Mi
-            limits:
-              memory: 500Mi
-          labels:
-            environment: "production"
-            release: "vllm"
-          ingress:
-            enabled: false
-            className: "nginx"
-            annotations:
-              cert-manager.io/cluster-issuer: "letsencrypt-prod"
-              nginx.ingress.kubernetes.io/ssl-redirect: "true"
-            hosts:
-              - host: vllm.deweever.bsisandbox.com
-                paths:
-                  - path: /
-                    pathType: Prefix
-            tls:
-              - secretName: vllm-tls
-                hosts:
-                  - vllm.deweever.bsisandbox.com
-          nodeSelectorTerms: []
-          tolerations: 
-            - key: "nvidia.com/gpu"
-              operator: "Exists"
-              effect: "NoSchedule"
-        loraAdapters: []
-        loraController:
-          enableLoraController: false      
-  destination:
-    server: https://kubernetes.default.svc  # In-cluster Kubernetes API
-    namespace: vllm  # Target namespace for deployment
-  syncPolicy:
-    automated:
-      prune: true  # Automatically delete resources not in Git
-      selfHeal: true  # Automatically sync if out of sync
-    syncOptions:
-      - CreateNamespace=true  # Create the 'vllm' namespace if it doesn't exist
-      - ApplyOutOfSyncOnly=true  # Optional: Only apply changes if out of sync
-    # Sync waves can be defined in the Helm chart hooks if needed; not specified here
-  # IgnoreDifferences can be added for resources that change externally, e.g., for GPU resources
-  # info: {}  # Optional: Add application info like URL after sync
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: vllm
+#   namespace: argocd  # Assumes ArgoCD is installed in 'argocd' namespace; adjust if different
+#   # Add labels or annotations if needed, e.g., finalizers: [resources-finalizer.argocd.argoproj.io]
+# spec:
+#   project: default  # Assumes default ArgoCD project; create a dedicated project for better isolation
+#   source:
+#     repoURL: https://vllm-project.github.io/production-stack
+#     chart: vllm-stack
+#     targetRevision: 0.1.7
+#     helm:
+#       releaseName: vllm
+#       values: |
+#         servingEngineSpec:
+#           enableEngine: true
+#           labels:
+#             environment: "production"
+#             release: "vllm"
+#           modelSpec:
+#             - name: "llama2-7b"
+#               repository: "vllm/vllm-openai"
+#               tag: "latest"
+#               modelURL: "deepseek-ai/DeepSeek-R1-Distill-Llama-8B"
+#               replicaCount: 1
+#               requestCPU: 2
+#               requestMemory: "8Gi"
+#               requestGPU: 1
+#               limitCPU: "4"
+#               limitMemory: "16Gi"
+#               env:
+#                 - name: HUGGING_FACE_HUB_TOKEN
+#                   valueFrom:
+#                     secretKeyRef:
+#                       name: hf-token-secret
+#                       key: token
+#               vllmConfig:
+#                 extraArgs:
+#                   - "--gpu-memory-utilization"
+#                   - "0.9"
+#                   - "--max-model-len"
+#                   - "4096"
+#                   - "--enforce-eager"
+#               nodeSelectorTerms:
+#                 - matchExpressions:
+#                     - key: type
+#                       operator: In
+#                       values:
+#                         - gpu
+#               runtimeClassName: "nvidia"
+#               tolerations:
+#                 - key: "nvidia.com/gpu"
+#                   operator: "Exists"
+#                   effect: "NoSchedule"
+#               securityContext: {}
+#               containerSecurityContext:
+#                 runAsNonRoot: false
+#                 allowPrivilegeEscalation: false
+#           containerPort: 8000
+#           servicePort: 80
+#           startupProbe:
+#             initialDelaySeconds: 15
+#             periodSeconds: 10
+#             failureThreshold: 60
+#             httpGet:
+#               path: /health
+#               port: 8000
+#           livenessProbe:
+#             initialDelaySeconds: 15
+#             failureThreshold: 3
+#             periodSeconds: 10
+#             httpGet:
+#               path: /health
+#               port: 8000
+#         routerSpec:
+#           enableRouter: true
+#           replicaCount: 1
+#           containerPort: 8000
+#           servicePort: 80
+#           serviceType: ClusterIP
+#           serviceDiscovery: "k8s"
+#           routingLogic: "roundrobin"
+#           resources:
+#             requests:
+#               cpu: 400m
+#               memory: 500Mi
+#             limits:
+#               memory: 500Mi
+#           labels:
+#             environment: "production"
+#             release: "vllm"
+#           ingress:
+#             enabled: false
+#             className: "nginx"
+#             annotations:
+#               cert-manager.io/cluster-issuer: "letsencrypt-prod"
+#               nginx.ingress.kubernetes.io/ssl-redirect: "true"
+#             hosts:
+#               - host: vllm.deweever.bsisandbox.com
+#                 paths:
+#                   - path: /
+#                     pathType: Prefix
+#             tls:
+#               - secretName: vllm-tls
+#                 hosts:
+#                   - vllm.deweever.bsisandbox.com
+#           nodeSelectorTerms: []
+#           tolerations: 
+#             - key: "nvidia.com/gpu"
+#               operator: "Exists"
+#               effect: "NoSchedule"
+#         loraAdapters: []
+#         loraController:
+#           enableLoraController: false      
+#   destination:
+#     server: https://kubernetes.default.svc  # In-cluster Kubernetes API
+#     namespace: vllm  # Target namespace for deployment
+#   syncPolicy:
+#     automated:
+#       prune: true  # Automatically delete resources not in Git
+#       selfHeal: true  # Automatically sync if out of sync
+#     syncOptions:
+#       - CreateNamespace=true  # Create the 'vllm' namespace if it doesn't exist
+#       - ApplyOutOfSyncOnly=true  # Optional: Only apply changes if out of sync
+#     # Sync waves can be defined in the Helm chart hooks if needed; not specified here
+#   # IgnoreDifferences can be added for resources that change externally, e.g., for GPU resources
+#   # info: {}  # Optional: Add application info like URL after sync
