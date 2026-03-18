@@ -116,7 +116,7 @@ module "eks" {
       desired_size   = 2
       disk_size      = 100
       instance_types = ["g6.xlarge"]
-      ami_type       = "AL2023_x86_64_NEURON"
+      ami_type       = "AL2023_x86_64_NVIDIA"
       key_name       = aws_key_pair.eks.key_name
       labels         = { "type" : "gpu" }
       block_device_mappings = {

@@ -17,10 +17,10 @@ spec:
           imageRegistry: nvcr.io/nvidia  # Default NVIDIA registry
           imagePullPolicy: IfNotPresent
         driver:
-          enabled: false
-          version: "570.172.08"
+          enabled: true
+          version: "590.48.01"
         toolkit:
-          enabled: false 
+          enabled: true 
         devicePlugin:
           enabled: true
           resources:
@@ -35,7 +35,7 @@ spec:
             runAsUser: 1000
             fsGroup: 2000
         containerToolkit:
-          enabled: false
+          enabled: true
         dcgm:
           enabled: true
           env:
