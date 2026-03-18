@@ -88,8 +88,8 @@ module "eks" {
   eks_managed_node_groups = {
     cpu = {
       min_size       = 1
-      max_size       = 3
-      desired_size   = 2
+      max_size       = 5
+      desired_size   = 3
       disk_size      = 100
       instance_types = ["m5.large"]
       ami_type       = "AL2023_x86_64_STANDARD"
@@ -113,10 +113,10 @@ module "eks" {
     gpu = {
       min_size       = 1
       max_size       = 3
-      desired_size   = 1
+      desired_size   = 2
       disk_size      = 100
       instance_types = ["g6.xlarge"]
-      ami_type       = "AL2023_x86_64_NVIDIA"
+      ami_type       = "AL2023_x86_64_NEURON"
       key_name       = aws_key_pair.eks.key_name
       labels         = { "type" : "gpu" }
       block_device_mappings = {

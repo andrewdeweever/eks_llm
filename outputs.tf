@@ -28,3 +28,8 @@ output "cert_manager_role_arn" {
   value       = aws_iam_role.cert_manager.arn
   description = "ARN of the IAM role for external-dns"
 }
+
+output "ecr_public_repository_uri" {
+  description = "URI of the public ECR repository"
+  value       = aws_ecrpublic_repository.example.repository_uri
+}

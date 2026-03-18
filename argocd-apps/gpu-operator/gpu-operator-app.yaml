@@ -9,7 +9,7 @@ spec:
   source:
     repoURL: https://helm.ngc.nvidia.com/nvidia  # Official NVIDIA Helm repo
     chart: gpu-operator
-    targetRevision: v25.3.4  # Latest stable version as of 2025-10-01; pin for production, check NVIDIA docs for updates
+    targetRevision: v25.10.1  # Latest stable version as of 2025-10-01; pin for production, check NVIDIA docs for updates
     helm:
       releaseName: gpu-operator
       values: |

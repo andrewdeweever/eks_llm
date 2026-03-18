@@ -37,6 +37,19 @@ provider "aws" {
   }
 }
 
+provider "aws" {
+  alias   = "ecr_public"
+  region  = "us-east-1"
+  profile = "bsi-sandbox"
+  default_tags {
+    tags = {
+      Owner     = "adeweever"
+      Terraform = "true"
+      Project   = "EKS_LLM"
+    }
+  }
+}
+
 provider "helm" {
   kubernetes {
     host                   = module.eks.cluster_endpoint
