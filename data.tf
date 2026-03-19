@@ -30,3 +30,7 @@ resource "null_resource" "update_kubeconfig" {
     command = "aws eks update-kubeconfig --name ${module.eks.cluster_name} --region ${var.aws_region}"
   }
 }
+
+data "aws_ecrpublic_authorization_token" "token" {
+  provider = aws.ecr_public # ← alias needed
+}

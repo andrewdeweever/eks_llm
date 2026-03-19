@@ -9,10 +9,10 @@ output "eks_private_key_pem" {
   sensitive = true
 }
 
-# output "bastion_public_ip" {
-#   description = "Public IP of the Bastion host"
-#   value       = aws_instance.bastion.public_ip
-# }
+output "bastion_public_ip" {
+  description = "Public IP of the Bastion host"
+  value       = aws_instance.bastion.public_ip
+}
 
 output "eks_cluster_name" {
   description = "Name of the EKS cluster"

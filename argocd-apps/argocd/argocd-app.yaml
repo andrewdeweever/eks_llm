@@ -11,7 +11,7 @@ spec:
   source:
     repoURL: https://argoproj.github.io/argo-helm  # Official Argo Helm repo
     chart: argo-cd
-    targetRevision: 8.5.8  # Latest stable version as of 2025-10-01; pin and update semantically for production
+    targetRevision: 9.4.7  # Latest stable version as of 2025-10-01; pin and update semantically for production
     helm:
       releaseName: argocd
       values: |

@@ -115,14 +115,14 @@ resource "helm_release" "alb_controller" {
         annotations:
           eks.amazonaws.com/role-arn: ${aws_iam_role.aws-load-balancer-controller-role.arn}
       ingress:
-        enabled: false       
+        enabled: false
     EOT
   ]
 
   wait    = true
   timeout = 600
 
-  depends_on = [module.eks, aws_iam_role.aws-load-balancer-controller-role]
+  depends_on = [module.eks, aws_iam_role.aws-load-balancer-controller-role, kubectl_manifest.nodepool_compute]
 }
 
 # # ACM Certificate for ArgoCD
@@ -204,7 +204,7 @@ resource "helm_release" "argocd" {
   wait    = true
   timeout = 600
 
-  depends_on = [module.eks]
+  depends_on = [module.eks, kubectl_manifest.nodepool_compute]
 }
 
 resource "kubectl_manifest" "argocd_root_app" {
@@ -264,7 +264,7 @@ resource "kubernetes_storage_class_v1" "gp3" {
 
   allow_volume_expansion = true
 
-  depends_on = [module.eks]
+  depends_on = [module.eks, kubectl_manifest.nodepool_compute]
 }
 
 # Note: This "App of Apps" pattern deploys all sub-apps in argocd-apps/. For private repo, the git-repo secret handles auth.
