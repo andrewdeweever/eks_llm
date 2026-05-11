@@ -25,7 +25,6 @@ spec:
             cpu: 200m
             memory: 512Mi
         webhook:
-          enabled: true
           resources:
             requests:
               cpu: 10m
@@ -38,12 +37,6 @@ spec:
             enabled: false  # Deprecated in newer K8s
           leaderElection:
             namespace: cert-manager  # Dedicated namespace
-        podSecurityContext:
-          runAsNonRoot: true
-          runAsUser: 1000
-          fsGroup: 2000
-        rbac:
-          create: true
         serviceAccount:
           create: true
           name: cert-manager
