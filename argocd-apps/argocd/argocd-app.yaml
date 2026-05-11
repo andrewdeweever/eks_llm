@@ -97,6 +97,7 @@ spec:
     syncOptions:
       - CreateNamespace=true  # Create the 'argocd' namespace if it doesn't exist
       - ApplyOutOfSyncOnly=true  # Only apply changes if out of sync for efficiency
+      - ServerSideApply=true
     # Sync waves: ArgoCD chart handles CRDs first via installCRDs=true in values.yaml
   # IgnoreDifferences: Add if needed for resources that change externally, e.g., for EKS managed fields
   # info: {}  # Optional: Add post-sync hooks or application info like external URL
