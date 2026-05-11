@@ -221,7 +221,14 @@ spec:
     - tags:
         karpenter.sh/discovery: ${var.project_name}
   amiSelectorTerms:
-    - name: amazon-eks-node-al2023-x86_64-standard-*
+    - alias: al2023@latest
+  blockDeviceMappings:
+    - deviceName: /dev/xvda
+      ebs:
+        volumeSize: 100Gi
+        volumeType: gp3
+        deleteOnTermination: true
+        encrypted: true        
 YAML
 
   depends_on = [module.eks_blueprints_addons]
@@ -243,7 +250,14 @@ spec:
     - tags:
         karpenter.sh/discovery: ${var.project_name}
   amiSelectorTerms:
-    - name: amazon-eks-node-al2023-x86_64-nvidia-*
+    - alias: al2023@latest
+  blockDeviceMappings:
+    - deviceName: /dev/xvda
+      ebs:
+        volumeSize: 100Gi
+        volumeType: gp3
+        deleteOnTermination: true
+        encrypted: true    
 YAML
 
   depends_on = [module.eks_blueprints_addons]
@@ -278,7 +292,7 @@ spec:
           values: ["linux"]
         - key: node.kubernetes.io/instance-type
           operator: In
-          values: ["m5.xlarge"]      
+          values: ["m5.large"]      
   disruption:
     consolidationPolicy: WhenEmptyOrUnderutilized
     consolidateAfter: 60s
@@ -308,9 +322,15 @@ spec:
         - key: karpenter.sh/capacity-type
           operator: In
           values: ["on-demand"]
-        - key: karpenter.k8s.aws/instance-type
+        - key: node.kubernetes.io/instance-type
           operator: In
           values: ["g6.xlarge"]
+        - key: kubernetes.io/arch
+          operator: In
+          values: ["amd64"]
+        - key: kubernetes.io/os
+          operator: In
+          values: ["linux"]          
       taints:
         - key: nvidia.com/gpu
           value: "true"

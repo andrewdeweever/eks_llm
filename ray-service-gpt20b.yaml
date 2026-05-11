@@ -71,12 +71,12 @@ spec:
                   key: hf_token
             resources:
               limits:
-                cpu: "4"
-                memory: "16Gi"
+                cpu: "3"
+                memory: "12Gi"
                 nvidia.com/gpu: "1"
               requests:
-                cpu: "4"
-                memory: "16Gi"
+                cpu: "2"
+                memory: "8Gi"
                 nvidia.com/gpu: "1"
             # Optional but recommended for vLLM/NCCL
             volumeMounts:
