@@ -49,20 +49,38 @@ module "eks" {
       before_compute = true
       configuration_values = jsonencode({
         env = {
-          ENABLE_PREFIX_DELEGATION = "true"
-          WARM_PREFIX_TARGET       = "1"
+          ENABLE_PREFIX_DELEGATION = "false"
+          WARM_IP_TARGET           = "5"
+          MINIMUM_IP_TARGET        = "5"
         }
       })
     }
     coredns = {
-      most_recent = true
+      most_recent    = true
+      before_compute = true
+      configuration_values = jsonencode({
+        tolerations = [
+          {
+            key      = "KarpenterOnly"
+            operator = "Exists"
+            effect   = "NoSchedule"
+          }
+        ]
+      })
     }
     kube-proxy = {
-      most_recent = true
+      most_recent    = true
+      before_compute = true
     }
     aws-ebs-csi-driver = {
       service_account_role_arn = module.ebs_csi_irsa_role.arn
       most_recent              = true
+      before_compute           = true
+    }
+    aws-efs-csi-driver = {
+      service_account_role_arn = module.efs_csi_irsa_role.arn
+      most_recent              = true
+      before_compute           = true
     }
     eks-pod-identity-agent = {
       before_compute = true
@@ -93,37 +111,41 @@ module "eks" {
   enable_irsa = true
 
   eks_managed_node_groups = {
-    initial = {
-      min_size       = 1
-      max_size       = 3
-      desired_size   = 2
-      disk_size      = 100
-      instance_types = ["m5.large"]
-      ami_type       = "AL2023_x86_64_STANDARD"
-      key_name       = aws_key_pair.eks.key_name
-      block_device_mappings = {
-        # Root volume (increase size here)
-        xvda = {
-          device_name = "/dev/xvda"
-          ebs = {
-            volume_size           = 75 # New size in GiB (default is ~20)
-            volume_type           = "gp3"
-            delete_on_termination = true
-            encrypted             = true
-            # Optional: iops = 3000  # For higher performance
-            # throughput = 125  # For gp3 (MiB/s)
-          }
-        }
-      }
-    }
+    # initial = {
+    #   name            = "initial"
+    #   use_name_prefix = false
+    #   min_size        = 1
+    #   max_size        = 3
+    #   desired_size    = 2
+    #   disk_size       = 100
+    #   instance_types  = ["m5.large"]
+    #   ami_type        = "AL2023_x86_64_STANDARD"
+    #   key_name        = aws_key_pair.eks.key_name
+    #   block_device_mappings = {
+    #     # Root volume (increase size here)
+    #     xvda = {
+    #       device_name = "/dev/xvda"
+    #       ebs = {
+    #         volume_size           = 75 # New size in GiB (default is ~20)
+    #         volume_type           = "gp3"
+    #         delete_on_termination = true
+    #         encrypted             = true
+    #         # Optional: iops = 3000  # For higher performance
+    #         # throughput = 125  # For gp3 (MiB/s)
+    #       }
+    #     }
+    #   }
+    # }
     karpenter_controller = {
-      min_size       = 1
-      max_size       = 3
-      desired_size   = 2
-      disk_size      = 100
-      instance_types = ["m5.large"]
-      ami_type       = "AL2023_x86_64_STANDARD"
-      key_name       = aws_key_pair.eks.key_name
+      name            = "karpenter-controller"
+      use_name_prefix = false
+      min_size        = 1
+      max_size        = 3
+      desired_size    = 2
+      disk_size       = 100
+      instance_types  = ["m5.large"]
+      ami_type        = "AL2023_x86_64_STANDARD"
+      key_name        = aws_key_pair.eks.key_name
       labels = {
         "karpenter.sh/controller" = "true"
       }
@@ -271,6 +293,9 @@ kind: NodePool
 metadata:
   name: compute
 spec:
+  limits:
+    cpu: "100"
+    memory: "400Gi"
   template:
     metadata:
       labels:
@@ -309,6 +334,10 @@ kind: NodePool
 metadata:
   name: gpu
 spec:
+  limits:
+    nvidia.com/gpu: "8"
+    cpu: "100"
+    memory: "400Gi"
   template:
     metadata:
       labels:
@@ -324,7 +353,7 @@ spec:
           values: ["on-demand"]
         - key: node.kubernetes.io/instance-type
           operator: In
-          values: ["g6.xlarge"]
+          values: ["g7e.2xlarge"]
         - key: kubernetes.io/arch
           operator: In
           values: ["amd64"]
@@ -341,4 +370,32 @@ spec:
 YAML
 
   depends_on = [kubectl_manifest.ec2nodeclass_gpu_nvidia]
+}
+
+resource "terraform_data" "karpenter_cleanup" {
+  input = module.eks.cluster_name
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<EOF
+      # Find EC2 instances managed by Karpenter for this specific cluster
+      INSTANCE_IDS=$(aws ec2 describe-instances \
+        --filters "Name=tag:eks:eks-cluster-name,Values=${self.input}" "Name=tag-key,Values=karpenter.sh/nodepool" "Name=instance-state-name,Values=running,pending" \
+        --query 'Reservations[*].Instances[*].InstanceId' \
+        --output text)
+
+      if [ -n "$INSTANCE_IDS" ]; then
+        echo "Terminating Karpenter-managed instances: $INSTANCE_IDS"
+        aws ec2 terminate-instances --instance-ids $INSTANCE_IDS
+        
+        echo "Waiting for instances to terminate so VPC can be safely deleted..."
+        aws ec2 wait instance-terminated --instance-ids $INSTANCE_IDS
+      else
+        echo "No Karpenter instances found. Proceeding with destroy."
+      fi
+    EOF
+  }
+
+  # Ensure this runs before the EKS cluster and VPC are destroyed
+  depends_on = [module.eks_blueprints_addons]
 }

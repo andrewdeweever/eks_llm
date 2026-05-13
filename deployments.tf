@@ -269,3 +269,76 @@ resource "kubernetes_storage_class_v1" "gp3" {
 
 # Note: This "App of Apps" pattern deploys all sub-apps in argocd-apps/. For private repo, the git-repo secret handles auth.
 # Best practices: Use a dedicated ArgoCD project for apps; add sync waves if ordering matters (e.g., cert-manager before ingress).
+
+resource "terraform_data" "aws_lb_sg_cleanup" {
+  input = module.eks.cluster_name
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<EOF
+      export CLUSTER_NAME="${self.input}"
+      echo "=== Aggressively destroying AWS Load Balancers and Security Groups for cluster: $CLUSTER_NAME ==="
+      
+      # 1. Find all Load Balancers (ALB/NLB) associated with the cluster via tags
+      echo "Hunting down Load Balancers..."
+      LB_ARNS=$(aws resourcegroupstaggingapi get-resources \
+        --resource-type elasticloadbalancing:loadbalancer \
+        --tag-filters "Key=elbv2.k8s.aws/cluster,Values=$CLUSTER_NAME" \
+        --query 'ResourceTagMappingList[*].ResourceARN' \
+        --output text 2>/dev/null)
+      
+      if [ -n "$LB_ARNS" ]; then
+        for arn in $LB_ARNS; do
+          echo "Deleting Load Balancer: $arn"
+          aws elbv2 delete-load-balancer --load-balancer-arn "$arn" || true
+        done
+        echo "Waiting 30 seconds for ENIs to detach..."
+        sleep 120
+      fi
+
+      SG_IDS=$(aws ec2 describe-security-groups \
+        --filters "Name=tag:elbv2.k8s.aws/cluster,Values=$CLUSTER_NAME" \
+        --query 'SecurityGroups[*].[GroupId]' \
+        --output text 2>/dev/null)
+      
+      if [ -n "$SG_IDS" ]; then
+        for sg in $SG_IDS; do
+          echo "Removing references to Security Group: $sg from other security groups..."
+          DEPENDENT_SGS=$(aws ec2 describe-security-groups \
+            --filters "Name=ip-permission.group-id,Values=$sg" \
+            --query 'SecurityGroups[*].GroupId' --output text 2>/dev/null)
+          
+          if [ -n "$DEPENDENT_SGS" ]; then
+            for dep_sg in $DEPENDENT_SGS; do
+              RULE_IDS=$(aws ec2 describe-security-group-rules \
+                --filters "Name=group-id,Values=$dep_sg" \
+                --query "SecurityGroupRules[?ReferencedGroupInfo.GroupId=='$sg'].SecurityGroupRuleId" \
+                --output text 2>/dev/null)
+              
+              if [ -n "$RULE_IDS" ]; then
+                for rule in $RULE_IDS; do
+                  echo "Revoking rule $rule from dependent SG $dep_sg"
+                  aws ec2 revoke-security-group-ingress --group-id "$dep_sg" --security-group-rule-ids "$rule" 2>/dev/null || true
+                  aws ec2 revoke-security-group-egress --group-id "$dep_sg" --security-group-rule-ids "$rule" 2>/dev/null || true
+                done
+              fi
+            done
+          fi
+
+          # Revoke internal rules to avoid circular dependencies
+          aws ec2 revoke-security-group-ingress --group-id "$sg" --ip-permissions "$(aws ec2 describe-security-groups --group-ids "$sg" --query 'SecurityGroups[0].IpPermissions' --output json)" 2>/dev/null || true
+          aws ec2 revoke-security-group-egress --group-id "$sg" --ip-permissions "$(aws ec2 describe-security-groups --group-ids "$sg" --query 'SecurityGroups[0].IpPermissionsEgress' --output json)" 2>/dev/null || true
+        done
+
+        for sg in $SG_IDS; do
+          echo "Deleting Security Group: $sg"
+          aws ec2 delete-security-group --group-id "$sg" || true
+        done
+      fi
+      
+      echo "=== Cleanup Complete ==="
+    EOF
+  }
+
+  depends_on = [module.eks]
+}

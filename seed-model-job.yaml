@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: seed-gpt-oss-120b
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: model-downloader
+        image: python:3.11-slim
+        command: ["/bin/sh", "-c"]
+        args:
+        - "pip install -U huggingface_hub[cli] && echo 'Starting download...' && hf download openai/gpt-oss-120b && echo 'Download complete!'"
+        env:
+        - name: HF_HUB_VERBOSITY
+          value: "debug"
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        - name: HF_HUB_DOWNLOAD_THREADS
+          value: "1"
+        - name: HF_HOME
+          value: /shared-model-cache
+        - name: HF_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: hf-token
+              key: hf_token
+        resources:
+          limits:
+            memory: "6Gi"
+            cpu: "1"
+          requests:
+            memory: "4Gi"
+            cpu: "1"
+        volumeMounts:
+        - mountPath: /shared-model-cache
+          name: model-cache-vol
+      nodeSelector:
+        "type": "cpu"
+      volumes:
+      - name: model-cache-vol
+        persistentVolumeClaim:
+          claimName: hf-model-cache-pvc

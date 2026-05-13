@@ -1,0 +1,110 @@
+apiVersion: ray.io/v1
+kind: RayService
+metadata:
+  name: gpt-oss-120b
+spec:
+  serveConfigV2: |
+    applications:
+    - name: llm
+      import_path: ray.serve.llm:build_openai_app
+      route_prefix: "/"
+      args:
+        llm_configs:
+        - model_loading_config:
+            model_id: "gpt-oss-120b"
+            model_source: "openai/gpt-oss-120b"
+          deployment_config:
+            autoscaling_config:
+              min_replicas: 1
+              max_replicas: 5
+            max_ongoing_requests: 128
+          engine_kwargs:
+            tensor_parallel_size: 1
+            pipeline_parallel_size: 2
+            gpu_memory_utilization: 0.90
+            dtype: "bfloat16"
+            max_model_len: 8192
+            max_num_seqs: 256
+            enable_chunked_prefill: true
+            enable_prefix_caching: true
+  rayClusterConfig:
+    enableInTreeAutoscaling: true
+    rayVersion: "2.52.0"
+    headGroupSpec:
+      rayStartParams:
+        num-gpus: "0"
+      template:
+        spec:
+          containers:
+          - name: ray-head
+            image: rayproject/ray-llm:2.52.0-py311-cu128
+            env:
+            - name: HF_HOME
+              value: /shared-model-cache
+            resources:
+              limits:
+                cpu: "2"
+                memory: "6Gi"
+              requests:
+                cpu: "1"
+                memory: "4Gi"
+            ports:
+            - containerPort: 8000
+              name: serve
+            - containerPort: 8265
+              name: dashboard
+            volumeMounts:
+            - mountPath: /shared-model-cache
+              name: model-cache-vol
+          volumes:
+          - name: model-cache-vol
+            persistentVolumeClaim:
+              claimName: hf-model-cache-pvc
+    workerGroupSpecs:
+    - groupName: gpu-group
+      replicas: 2
+      minReplicas: 2
+      maxReplicas: 10
+      rayStartParams:
+        num-gpus: "1"
+      template:
+        spec:
+          containers:
+          - name: ray-worker
+            image: rayproject/ray-llm:2.52.0-py311-cu128
+            env:
+            - name: HF_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: hf-token
+                  key: hf_token
+            - name: HF_HOME
+              value: /shared-model-cache
+            resources:
+              limits:
+                cpu: "8"
+                memory: "60Gi"
+                nvidia.com/gpu: "1"
+              requests:
+                cpu: "4"
+                memory: "48Gi"
+                nvidia.com/gpu: "1"
+            # Optional but recommended for vLLM/NCCL
+            volumeMounts:
+            - mountPath: /dev/shm
+              name: dshm
+            - mountPath: /shared-model-cache
+              name: model-cache-vol
+          tolerations:
+          - key: "nvidia.com/gpu"
+            operator: "Equal"
+            value: "true"
+            effect: "NoSchedule"
+          volumes:
+          - name: dshm
+            emptyDir:
+              medium: Memory
+              sizeLimit: 12Gi
+          - name: model-cache-vol
+            persistentVolumeClaim:
+              claimName: hf-model-cache-pvc
